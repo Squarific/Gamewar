@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>SQUARIFIC gameWar - playing the awesome</title>
+		<link href='http://fonts.googleapis.com/css?family=Orbitron:700' rel='stylesheet' type='text/css'>
+		<link href='http://fonts.googleapis.com/css?family=Arapey' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" href="style.css">
+		<link rel="shortcut icon" href="/favicon.ico?t=220408112013"> 
+	</head>
+	<body>
+		<div class="topbar">
+			<div class="title" onclick="gameWar.callEvent('titleclick');">Squarific gameWar</div>
+			<div class="username">
+				Logged in as:
+				<div class="link" onclick="gameWar.callEvent('profile', this.innerHTML)">AdminAccount</div>
+				<div class="link" onclick="gameWar.callEvent('loginscreen')">(change)</div>
+			</div>
+			<div class="walletstatus">
+				Wallet: 
+				<div id="BTC_amount" class="link" onclick="gameWar.callEvent('wallethq')">2.00001258 BTC</div>
+			</div>
+		</div>
+		<div class="topbar menu">
+			<div class="link" onclick="gameWar.callEvent('activegames')">Current active games</div>
+			<div class="link" onclick="gameWar.callEvent('gamelobby')">Play a new game</div>
+			<div class="link" onclick="gameWar.callEvent('wallethq')">Wallet HQ</div>
+		</div>
+		<div class="topbar tabs">
+			<div class="link active" onclick="gameWar.callEvent('activegames')">Current active games<div class="close">X</div></div>
+			<div class="link" onclick="gameWar.callEvent('gamelobby')">Play a new game<div class="close">X</div></div>
+			<div class="link" onclick="gameWar.callEvent('wallethq')">Wallet HQ<div class="close">X</div></div>
+		</div>
+		<div id="pagecontainer">
+			
+		</div>
+		<script src="js/gameWar.js">
+		</script>
+		<script>
+			gameWar.callEvent('activegames');
+		</script>
+		<script>
+		  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+		  ga('create', 'UA-30802449-2', 'squarific.com');
+		  ga('send', 'pageview');
+
+		</script>
+	</body>
+</html>
