@@ -12,12 +12,12 @@
 			<div class="title" onclick="gameWar.callEvent('titleclick');">Squarific gameWar</div>
 			<div class="username">
 				Logged in as:
-				<div class="link" onclick="gameWar.callEvent('profile', this.innerHTML)">AdminAccount</div>
+				<div class="link" onclick="gameWar.callEvent('profile', this.innerHTML)"></div>
 				<div class="link" onclick="gameWar.callEvent('loginscreen')">(change)</div>
 			</div>
 			<div class="walletstatus">
 				Wallet: 
-				<div id="BTC_amount" class="link" onclick="gameWar.callEvent('wallethq')">2.00001258 BTC</div>
+				<div id="BTC_amount" class="link" onclick="gameWar.callEvent('wallethq')"></div>
 			</div>
 		</div>
 		<div class="topbar menu">
@@ -25,16 +25,15 @@
 			<div class="link" onclick="gameWar.callEvent('gamelobby')">Play a new game</div>
 			<div class="link" onclick="gameWar.callEvent('wallethq')">Wallet HQ</div>
 		</div>
-		<div class="topbar tabs">
-			<div class="link active" onclick="gameWar.callEvent('activegames')">Current active games<div class="close">X</div></div>
-			<div class="link" onclick="gameWar.callEvent('gamelobby')">Play a new game<div class="close">X</div></div>
-			<div class="link" onclick="gameWar.callEvent('wallethq')">Wallet HQ<div class="close">X</div></div>
+		<div id="tabcontainer" class="topbar tabs">
 		</div>
 		<div id="pagecontainer">
 			
 		</div>
-		<script src="js/gameWar.js">
-		</script>
+		<script src="socket.io/socket.io.js"></script>
+		<script src="js/tabview.js"></script>
+		<script src="js/gameWar.js"></script>
+		<script src="js/eventcallbacks.js"></script>
 		<script>
 			gameWar.callEvent('activegames');
 		</script>
