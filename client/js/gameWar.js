@@ -32,10 +32,10 @@ var GameWar = function GameWar () {
 	};
 };
 
-//var network = io.connect("localhost:8080");
+var network = io.connect("127.0.0.1:8080");
 var gameWar = new GameWar();
 
-/*network.emit("login", {
+network.emit("login", {
 	username: localStorage.getItem("gamewar.username"),
 	password: localStorage.getItem("gamewar.password")
-});*/
+});
