@@ -84,3 +84,49 @@ body {
 .close:hover {
 	color:rgb(255, 150, 150);
 }
+.container {
+	position:relative;
+}
+.page {
+	position:absolute;
+	left:0;
+	top:0;
+	width:100%;
+	background:rgb(145, 145, 145);
+}
+.default_label {
+	display:inline-block;
+	text-align:left;
+	font-weight:800;
+	font-size:18px;
+	min-width:200px;
+}
+.default_input {
+	width:200px;
+	padding:4px;
+}
+.default_blocktext {
+	margin:5px;
+	padding:5px;
+	background:white;
+	font-size:18px;
+}
+.default_button {
+	display:inline-block;
+	padding:5px;
+	padding-left:10px;
+	padding-right:10px;
+	margin:5px;
+	color:white;
+	background:rgb(189, 96, 24);
+	font-weight:800;
+	border-bottom:2px solid rgb(99, 66, 17);
+	font-size:18px;
+	transition-duration: .12s;
+	-webkit-transition-duration: .12s;
+	cursor:pointer;
+}
+.default_button:hover {
+	background:rgb(134, 70, 20);
+	border-bottom:2px solid rgb(75, 50, 14);
+}
