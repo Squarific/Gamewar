@@ -42,7 +42,6 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 	};
 	
 	this.resize = function () {
-		console.log("resize");
 		var pages = document.getElementsByClassName("page");
 		for (var page = 0; page < pages.length; page++) {
 			pages[page].style.minHeight = window.innerHeight - pages[page].offsetParent.offsetTop + "px";

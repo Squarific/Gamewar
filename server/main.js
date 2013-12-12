@@ -7,14 +7,14 @@ console.log("");
 var settings = require("./settings.js");
 var database = require("./database.js");
 var CryptoJS = require("./CryptoJSSha256.js");
-var LoginHandlers = require("./loginhandlers.js");
+var Eventhandlers = require("./eventhandlers.js");
 
 var mysql = require("mysql").createConnection({
 	host: settings.database.hostname,
 	user: settings.database.username,
 	password: settings.database.password
 });
-var loginhandlers = new LoginHandlers(mysql, CryptoJS);
+var eventhandlers = new Eventhandlers(mysql, CryptoJS);
 
 mysql.connect(function (err) {
 	if (err) throw err;
@@ -27,6 +27,7 @@ mysql.connect(function (err) {
 	console.log("Connected to databse, created database and created tables.");
 	
 	var io = require("socket.io").listen(settings.server.port);
+	io.set('log level', 2);
 	
 	console.log("Accepting connections on port " + settings.server.port);
 	iobind(io);
@@ -34,20 +35,28 @@ mysql.connect(function (err) {
 
 function iobind (io) {
 	io.sockets.on("connection", function (socket) {
-		socket.on("login", function (data, response) {
-			if (!data || !data.name) {
-				if (!socket.userdata || !socket.userdata.name) {
-					loginhandlers.newguest(socket);
+		socket.on("login", function (data, callback) {
+			if (!data || !data.username) {
+				if (!data || !socket.userdata || !socket.userdata.name) {
+					eventhandlers.newguest(socket, callback);
 				} else {
-					response("Please provide the name of the account.");
+					callback({error: "Please provide the name of the account you want to login to."});
 				}
 			} else {
-				loginhandlers.login(socket, data.username, CryptoJS.SHA256(data.password), response);
+				eventhandlers.login(socket, data.username, CryptoJS.SHA256(data.password), callback);
 			}
 		});
+
+		socket.on("changesettings", function (data, callback) {
+			eventhandlers.changeUserSettings(socket, data, callback);
+		});
 		
-		socket.on("changesetting", function (data, response) {
-			
+		socket.on("emaillist", function (data, callback) {
+			if (!socket.userdata || typeof socket.userdata.id !== "number") {
+				callback({error: "You can't ask for emails when not logged in."});
+				return;
+			}
+			eventhandlers.emails(socket.userdata.id, callback);
 		});
 	});
 }

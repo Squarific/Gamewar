@@ -38,4 +38,8 @@ var gameWar = new GameWar();
 network.emit("login", {
 	username: localStorage.getItem("gamewar.username"),
 	password: localStorage.getItem("gamewar.password")
+}, function (response) {
+	if (response.error) {
+		network.emit("login");
+	}
 });

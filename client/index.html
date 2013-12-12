@@ -12,6 +12,7 @@
 			<div class="title" onclick="gameWar.callEvent('titleclick');">Squarific gameWar</div>
 			<div class="username">
 				Logged in as:
+				<span id="username"></span>
 				<div class="link" onclick="gameWar.callEvent('profile', this.innerHTML)"></div>
 				<div class="link" onclick="gameWar.callEvent('loginscreen')">(change)</div>
 			</div>
@@ -32,6 +33,7 @@
 			
 		</div>
 		<script src="js/socket.io.js"></script>
+		<script src="js/style.js"></script>
 		<script src="js/tabview.js"></script>
 		<script src="js/gameWar.js"></script>
 		<script src="js/eventcallbacks.js"></script>
