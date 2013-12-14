@@ -25,6 +25,11 @@ var style = {
 				label: label, 
 				input: input
 			};
+		},
+		blockText: function () {
+			var blocktext = document.createElement("div");
+			blocktext.className = "default_blocktext";
+			return blocktext;
 		}
 	}
 };

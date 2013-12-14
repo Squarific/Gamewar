@@ -58,5 +58,9 @@ function iobind (io) {
 			}
 			eventhandlers.emails(socket.userdata.id, callback);
 		});
+		
+		socket.on("gamelist", function (data, callback) {
+			callback(settings.games);
+		});
 	});
 }

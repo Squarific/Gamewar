@@ -47,13 +47,13 @@ module.exports = function eventhandlers (mysql, CryptoJS) {
 		if (typeof callback !== "function") {
 			callback = function () {};
 		}
+		if (!socket || !socket.userdata || !socket.userdata.id) {
+			callback({error: "You can't change settings while not logged in."});
+			return;
+		}
 		if (data.email) {
 			if (data.email.length < 5 || data.email.length > 150) {
 				callback({error: "That email is too short (or too long)!"});
-				return;
-			}
-			if (!socket || !socket.userdata || !socket.userdata.id) {
-				callback({error: "You can't change settings while not logged in."});
 				return;
 			}
 			mysql.query("INSERT INTO emails (uid, email) VALUES (" + mysql.escape(socket.userdata.id) + ", " + mysql.escape(data.email) + ")", function (err) {
@@ -71,7 +71,49 @@ module.exports = function eventhandlers (mysql, CryptoJS) {
 				});
 			}.bind(this));
 		} else {
-			var allowed = ["username", "password"];
+			var change = [];
+			if (data.username) {
+				if (data.username.length < 3) {
+					callback({error: "Username has to be longer than 3 characters."});
+					return;
+				}
+				change.push("username = " + mysql.escape(data.username));
+			}
+			if (data.password) {
+				change.push("password = " + mysql.escape(CryptoJS.SHA256(data.password).toString(CryptoJS.enc.Hex)));
+			}
+			if (change.length < 1) {
+				callback({error: "Can't change settings: nothing provided."});
+				return;
+			}
+			var query = "UPDATE users SET ";
+			query += change.join(", ");
+			query += ", guest = 0";
+			query += " WHERE id = " + mysql.escape(socket.userdata.id);
+			mysql.query(query, function (err, rows, fields) {
+				if (err) {
+					if (err.toString().indexOf("DUP_ENTRY") > -1) {
+						callback({error: "Username " + data.username + " is already being used."});
+						return;
+					}
+					console.log(err);
+					callback({error: err.toString()});
+					return;
+				} else {
+					var success = "Successfuly updated settings.";
+					if (data.username) {
+						socket.emit("accountswitch", data.username);
+						console.log("Updated username of account ID: " + socket.userdata.id + " to " + data.username);
+						success += " Username set to " + data.username + ".";
+					}
+					if (data.password) {
+						socket.emit("password", data.password);
+						success += " Password changed to " + new Array(data.password.length).join("*");
+						console.log("Updated password of account ID: " + socket.userdata.id);
+					}
+					callback({success: success});
+				}
+			});
 		}
 	};
 	

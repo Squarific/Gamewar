@@ -12,7 +12,7 @@ module.exports = {
 		password: "gmpass45",
 		database: "gamewar" 
 	},
-	games: [
-		""
-	]
+	games: {
+		"Hearts (Black Lady)": "hearts.js"
+	}
 }

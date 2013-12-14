@@ -1,11 +1,24 @@
 //gameWar callbacks
 
+gameWar.addEventListener("gamelobby", function () {
+	var pagediv = tabview.open("gamelobby");
+	var newblock = style.default.blockText();
+	newblock.appendChild(document.createTextNode("Start a new game"));
+	network.emit("gamelist", undefined, function (data) {
+		console.log(data);
+	});
+	
+	pagediv.appendChild(newblock);
+	var listblock = style.default.blockText();
+	listblock.appendChild(document.createTextNode("Or join one of the other games"));
+	pagediv.appendChild(listblock);
+});
+
 gameWar.addEventListener("loginscreen", function () {
 	var pagediv = tabview.open("Login");
 	pagediv.style.textAlign = "center";
 	
-	var blocktext = document.createElement("div");
-	blocktext.className = "default_blocktext";
+	var blocktext = style.default.blockText();
 	
 	blocktext.appendChild(document.createElement("br"));
 	var message = document.createElement("div");
@@ -58,7 +71,8 @@ gameWar.addEventListener("settings", function () {
 	var blocktext = document.createElement("div");
 	blocktext.className = "default_blocktext";
 	blocktext.appendChild(message);
-	blocktext.appendChild(document.createTextNode("Change your settings: "));
+	blocktext.appendChild(document.createElement("br"));
+	blocktext.appendChild(document.createTextNode("Change your settings (leave blank what you don't want to change): "));
 	blocktext.appendChild(document.createElement("br"));
 	pagediv.appendChild(blocktext);
 	
@@ -85,7 +99,7 @@ gameWar.addEventListener("settings", function () {
 			message.appendChild(document.createTextNode("Passwords don't match."));
 			return;
 		}
-		if (password.input.value.length < 3) {
+		if (password.input.value.length < 3 && password.input.value.length > 0) {
 			while (message.firstChild) {
 				message.removeChild(message.firstChild);
 			}
@@ -93,8 +107,8 @@ gameWar.addEventListener("settings", function () {
 			return;
 		}
 		network.emit("changesettings", {
-			username: username.input.value,
-			password: password.input.value
+			username: username.input.value || undefined,
+			password: password.input.value || undefined
 		}, function (data) {
 			while (message.firstChild) {
 				message.removeChild(message.firstChild);
