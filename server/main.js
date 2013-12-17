@@ -16,6 +16,11 @@ var mysql = require("mysql").createConnection({
 });
 var eventhandlers = new Eventhandlers(mysql, CryptoJS);
 
+var games = {};
+for (var key in settings.games) {
+	games[key] = new (require("./games/" + key + ".js"))(mysql);
+}
+
 mysql.connect(function (err) {
 	if (err) throw err;
 	
@@ -36,6 +41,9 @@ mysql.connect(function (err) {
 function iobind (io) {
 	io.sockets.on("connection", function (socket) {
 		socket.on("login", function (data, callback) {
+			if (typeof callback !== "function") {
+				callback = function () {};
+			}
 			if (!data || !data.username) {
 				if (!data || !socket.userdata || !socket.userdata.name) {
 					eventhandlers.newguest(socket, callback);
@@ -48,10 +56,16 @@ function iobind (io) {
 		});
 
 		socket.on("changesettings", function (data, callback) {
+			if (typeof callback !== "function") {
+				callback = function () {};
+			}
 			eventhandlers.changeUserSettings(socket, data, callback);
 		});
 		
 		socket.on("emaillist", function (data, callback) {
+			if (typeof callback !== "function") {
+				callback = function () {};
+			}
 			if (!socket.userdata || typeof socket.userdata.id !== "number") {
 				callback({error: "You can't ask for emails when not logged in."});
 				return;
@@ -60,7 +74,21 @@ function iobind (io) {
 		});
 		
 		socket.on("gamelist", function (data, callback) {
+			if (typeof callback !== "function") {
+				callback = function () {};
+			}
 			callback(settings.games);
+		});
+		
+		socket.on("newgame", function (data, callback) {
+			if (typeof callback !== "function") {
+				callback = function () {};
+			}
+			eventhandlers.newGame(socket, data, settings, games, callback);
+		});
+		
+		socket.on("gamelobbylist", function (data, callback) {
+			callback(eventhandlers.getOpenGames());
 		});
 	});
 }

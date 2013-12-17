@@ -3,15 +3,84 @@
 gameWar.addEventListener("gamelobby", function () {
 	var pagediv = tabview.open("gamelobby");
 	var newblock = style.default.blockText();
+	pagediv.appendChild(newblock);
+	
+	var message = document.createElement("div");
+	newblock.appendChild(message);
 	newblock.appendChild(document.createTextNode("Start a new game"));
+	newblock.appendChild(document.createElement("br"));
+	
+	var gamelist = style.default.blockText();
+	gamelist.style.maxHeight = "300px";
+	gamelist.style.maxWidth = "250px";
+	gamelist.style.display = "inline-block";
+	gamelist.style.verticalAlign = "top";
+	newblock.appendChild(gamelist);
+	
+	var settingList = style.default.blockText();
+	settingList.style.maxWidth = "250px";
+	settingList.style.maxHeight = "350px";
+	settingList.style.display = "inline-block";
+	settingList.style.verticalAlign = "top";
+	newblock.appendChild(settingList);
+	
 	network.emit("gamelist", undefined, function (data) {
-		console.log(data);
+		for (var key in data) {
+			var gamebutton = style.default.button(data[key], function (event) {
+				gameWar.loadGame(event.target.game, function () {
+					while (settingList.firstChild) {
+						settingList.removeChild(settingList.firstChild);
+					}
+					var gamename = event.target.game;
+					var constructorName = gamename.charAt(0).toUpperCase() + gamename.slice(1);
+					var game = new gameWar.games[constructorName]();
+					var settings = {};
+					for (var key in game.settings) {
+						var input = style.default.input(game.settings[key].type, game.settings[key].label);
+						input.label.title = game.settings[key].info;
+						input.input.title = game.settings[key].info;
+						for (var k in game.settings[key].input) {
+							input.input[k] = game.settings[key].input[k];
+						}
+						settingList.appendChild(input.label);
+						settingList.appendChild(input.input);
+						settings[key] = input.input;
+					}
+					var submitGameButton = style.default.button("Create new game", function (event) {
+						var submitSettings = {};
+						for (var key in settings) {
+							submitSettings[key] = settings[key].value;
+						}
+						network.emit("newgame", {
+							name: gamename,
+							settings: submitSettings
+						}, function (data) {
+							while (message.firstChild) {
+								message.removeChild(message.firstChild);
+							}
+							message.appendChild(document.createTextNode(data.success || data.error));
+						});
+					});
+					submitGameButton.style.minWidth = "200px";
+					submitGameButton.style.maxWidth = "200px";
+					submitGameButton.style.marginLeft = "0px";
+					settingList.appendChild(submitGameButton);
+				});
+			});
+			gamebutton.game = key;
+			gamebutton.style.minWidth = "200px";
+			gamebutton.style.maxWidth = "200px";
+			gamelist.appendChild(gamebutton);
+		}
 	});
 	
-	pagediv.appendChild(newblock);
 	var listblock = style.default.blockText();
 	listblock.appendChild(document.createTextNode("Or join one of the other games"));
 	pagediv.appendChild(listblock);
+	
+	network.emit("gamelobbylist", undefined, function () {
+		
+	});
 });
 
 gameWar.addEventListener("loginscreen", function () {

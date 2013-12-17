@@ -13,6 +13,6 @@ module.exports = {
 		database: "gamewar" 
 	},
 	games: {
-		"Hearts (Black Lady)": "hearts.js"
+		"hearts": "Hearts (Black Lady)"
 	}
 }

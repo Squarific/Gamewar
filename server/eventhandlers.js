@@ -135,4 +135,59 @@ module.exports = function eventhandlers (mysql, CryptoJS) {
 			callback(list);
 		});
 	};
+	
+	this.newGame = function (socket, data, settings, games, callback) {
+		if (!socket.userdata || typeof socket.userdata.id !== "number") {
+			callback({error: "You can't make a new game when you aren't logged in"});
+			return;
+		}
+		if (typeof settings.games[data.name] !== "string" || !games[data.name]) {
+			callback({error: "This game doesn't exist."});
+			console.log("Someone tried starting a game with name", data.name, "DATA: ", data, "SETTINGS: ", settings, "LOADED GAMES:", games);
+			return;
+		}
+		var datasettings = {};
+		for (var key in games[data.name].settings) {
+			data.settings[key] = parseInt(data.settings[key]);
+			if (!(data.settings[key] >= games[data.name].settings[key].input.min && data.settings[key] <= games[data.name].settings[key].input.max)) {
+				callback({error: key + " was not within the allowed boundry of min " + games[data.name].settings[key].input.min + " and max " + games[data.name].settings[key].input.max + ", value was " + data.settings[key]});
+				return;
+			}
+			datasettings[key] = data.settings[key];
+		}
+		mysql.query("INSERT INTO games_lobby (name) VALUES (" + mysql.escape(data.name) + ")", function (err, result) {
+			if (err) {
+				console.log("INSERT GAMES LOBBY ERR: ", err);
+				callback({error: err.toString()});
+				return;
+			}
+			var gameId = result.insertId;
+			var settingsQuerys = [];
+			for (var key in datasettings) {
+				settingsQuerys.push("(" + mysql.escape(gameId) + ", " + mysql.escape(key) + ", " + mysql.escape(datasettings[key]) + ")");
+			}
+			var query = "INSERT INTO games_settings (gameid, settingname, value) VALUES " + settingsQuerys.join(", ");
+			mysql.query(query, function (err, result) {
+				if (err) {
+					console.log("INSERT SETTINGS MYSQL ERR: ", err);
+					callback({error: err.toString()});
+					return;
+				}
+				var query = "INSERT INTO games_players (gameid, playerid) VALUES (" + mysql.escape(gameId) + ", " + mysql.escape(socket.userdata.id) + ")";
+				mysql.query(query, function (err, result) {
+					if (err) {
+						console.log("INSERT GAMECREATOR ERR: ", err);
+						callback({error: err.toString()});
+						return;
+					}
+					callback({success: "Game '" + gameId + "' created"});
+					console.log("Game " + data.name + " with ID: " + gameId + " created by USER ID: " + socket.userdata.id);
+				});
+			});
+		});
+	};
+	
+	this.getOpenGames = function () {
+		
+	};
 }

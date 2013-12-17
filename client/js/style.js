@@ -7,14 +7,14 @@ var style = {
 			button.addEventListener("click", callback);
 			return button;
 		},
-		input: function (type, name, placeholder) {
+		input: function (type, labelText, placeholder) {
 			if (!placeholder) {
-				placeholder = name;
+				placeholder = labelText;
 			}
 			
 			var label = document.createElement("div");
 			label.className = "default_label";
-			label.appendChild(document.createTextNode(name));
+			label.appendChild(document.createTextNode(labelText));
 			
 			var input = document.createElement("input");
 			input.type = type;

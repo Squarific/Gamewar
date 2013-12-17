@@ -116,6 +116,7 @@ body {
 	padding:5px;
 	background:white;
 	font-size:18px;
+	overflow:auto;
 }
 .default_button {
 	display:inline-block;

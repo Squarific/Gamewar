@@ -17,7 +17,30 @@ module.exports = {
 		query += "`id` int NOT NULL AUTO_INCREMENT,";
 		query += "`uid` varchar(32),";
 		query += "`email` text,";
-		query += "PRIMARY KEY (ID)";
+		query += "PRIMARY KEY (id)";
+		query += ")";
+		target.query(query);
+
+		var query = "CREATE TABLE IF NOT EXISTS ";
+		query += "games_lobby (";
+		query += "`id` bigint NOT NULL AUTO_INCREMENT,";
+		query += "`name` varchar(32),";
+		query += "PRIMARY KEY (id)";
+		query += ")";
+		target.query(query);
+		
+		var query = "CREATE TABLE IF NOT EXISTS ";
+		query += "games_settings (";
+		query += "`gameid` bigint NOT NULL,";
+		query += "`settingname` varchar(32),";
+		query += "`value` bigint";
+		query += ")";
+		target.query(query);
+		
+		var query = "CREATE TABLE IF NOT EXISTS ";
+		query += "games_players (";
+		query += "`gameid` bigint NOT NULL,";
+		query += "`playerid` bigint";
 		query += ")";
 		target.query(query);
 	}
