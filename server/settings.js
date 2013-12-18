@@ -14,5 +14,8 @@ module.exports = {
 	},
 	games: {
 		"hearts": "Hearts (Black Lady)"
+	},
+	backup: {
+		emails: ["alemaaltevinden@gmail.com"]
 	}
 }

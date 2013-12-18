@@ -44,7 +44,9 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 	this.resize = function () {
 		var pages = document.getElementsByClassName("page");
 		for (var page = 0; page < pages.length; page++) {
-			pages[page].style.minHeight = window.innerHeight - pages[page].offsetParent.offsetTop + "px";
+			if (pages[page].offsetParent) {
+				pages[page].style.minHeight = window.innerHeight - pages[page].offsetParent.offsetTop + "px";
+			}
 		}
 	};
 	
@@ -55,11 +57,14 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 		for (var child = 0; child < tab.parentNode.children.length; child++) {
 			if (tab.parentNode.children[child] !== tab) {
 				tab.parentNode.children[child].page.style.zIndex = "";
+				tab.parentNode.children[child].page.style.display = "none";
 				tab.parentNode.children[child].classList.remove("active");
 			}
 		}
 		tab.page.style.zIndex = 999;
+		tab.page.style.display = "";
 		tab.classList.add("active");
+		this.resize();
 	};
 	
 	window.addEventListener("resize", this.resize);

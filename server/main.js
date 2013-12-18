@@ -14,7 +14,7 @@ var mysql = require("mysql").createConnection({
 	user: settings.database.username,
 	password: settings.database.password
 });
-var eventhandlers = new Eventhandlers(mysql, CryptoJS);
+var eventhandlers = new Eventhandlers(mysql, CryptoJS, settings);
 
 var games = {};
 for (var key in settings.games) {
@@ -84,11 +84,11 @@ function iobind (io) {
 			if (typeof callback !== "function") {
 				callback = function () {};
 			}
-			eventhandlers.newGame(socket, data, settings, games, callback);
+			eventhandlers.newGame(socket, data, games, callback);
 		});
 		
 		socket.on("gamelobbylist", function (data, callback) {
-			callback(eventhandlers.getOpenGames());
+			eventhandlers.getOpenGames(callback);
 		});
 	});
 }

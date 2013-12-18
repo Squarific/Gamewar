@@ -2,7 +2,7 @@
 
 gameWar.addEventListener("gamelobby", function () {
 	var pagediv = tabview.open("gamelobby");
-	var newblock = style.default.blockText();
+	var newblock = style.currentStyle.blockText();
 	pagediv.appendChild(newblock);
 	
 	var message = document.createElement("div");
@@ -10,14 +10,14 @@ gameWar.addEventListener("gamelobby", function () {
 	newblock.appendChild(document.createTextNode("Start a new game"));
 	newblock.appendChild(document.createElement("br"));
 	
-	var gamelist = style.default.blockText();
+	var gamelist = style.currentStyle.blockText();
 	gamelist.style.maxHeight = "300px";
 	gamelist.style.maxWidth = "250px";
 	gamelist.style.display = "inline-block";
 	gamelist.style.verticalAlign = "top";
 	newblock.appendChild(gamelist);
 	
-	var settingList = style.default.blockText();
+	var settingList = style.currentStyle.blockText();
 	settingList.style.maxWidth = "250px";
 	settingList.style.maxHeight = "350px";
 	settingList.style.display = "inline-block";
@@ -26,7 +26,7 @@ gameWar.addEventListener("gamelobby", function () {
 	
 	network.emit("gamelist", undefined, function (data) {
 		for (var key in data) {
-			var gamebutton = style.default.button(data[key], function (event) {
+			var gamebutton = style.currentStyle.button(data[key], function (event) {
 				gameWar.loadGame(event.target.game, function () {
 					while (settingList.firstChild) {
 						settingList.removeChild(settingList.firstChild);
@@ -36,7 +36,7 @@ gameWar.addEventListener("gamelobby", function () {
 					var game = new gameWar.games[constructorName]();
 					var settings = {};
 					for (var key in game.settings) {
-						var input = style.default.input(game.settings[key].type, game.settings[key].label);
+						var input = style.currentStyle.labeledInput(game.settings[key].type, game.settings[key].label);
 						input.label.title = game.settings[key].info;
 						input.input.title = game.settings[key].info;
 						for (var k in game.settings[key].input) {
@@ -46,7 +46,7 @@ gameWar.addEventListener("gamelobby", function () {
 						settingList.appendChild(input.input);
 						settings[key] = input.input;
 					}
-					var submitGameButton = style.default.button("Create new game", function (event) {
+					var submitGameButton = style.currentStyle.button("Create new game", function (event) {
 						var submitSettings = {};
 						for (var key in settings) {
 							submitSettings[key] = settings[key].value;
@@ -74,12 +74,23 @@ gameWar.addEventListener("gamelobby", function () {
 		}
 	});
 	
-	var listblock = style.default.blockText();
+	var listblock = style.currentStyle.blockText();
 	listblock.appendChild(document.createTextNode("Or join one of the other games"));
+	listblock.style.maxHeight = "80%";
 	pagediv.appendChild(listblock);
 	
-	network.emit("gamelobbylist", undefined, function () {
-		
+	network.emit("gamelobbylist", undefined, function (gamelist) {
+		for (var key = 0; key < gamelist.length; key++) {
+			gameWar.loadGame(gamelist[key].name, (function (key) {
+				return function () {
+					var button = listblock.appendChild(style.currentStyle.gameButton(gamelist[key], gameWar.exampleGames, (function (gameid, event) {
+						return function () {
+							console.log(gameid);
+						}
+					})(gamelist[key].id)));
+				}
+			})(key));
+		}
 	});
 });
 
@@ -87,24 +98,24 @@ gameWar.addEventListener("loginscreen", function () {
 	var pagediv = tabview.open("Login");
 	pagediv.style.textAlign = "center";
 	
-	var blocktext = style.default.blockText();
+	var blocktext = style.currentStyle.blockText();
 	
 	blocktext.appendChild(document.createElement("br"));
 	var message = document.createElement("div");
 	blocktext.appendChild(message);
 	blocktext.appendChild(document.createElement("br"));
 
-	var username = style.default.input("text", "Username");
+	var username = style.currentStyle.labeledInput("text", "Username");
 	blocktext.appendChild(username.label);
 	blocktext.appendChild(username.input);
 	blocktext.appendChild(document.createElement("br"));
 	
-	var password = style.default.input("password", "Password");
+	var password = style.currentStyle.labeledInput("password", "Password");
 	blocktext.appendChild(password.label);
 	blocktext.appendChild(password.input);
 	blocktext.appendChild(document.createElement("br"));
 	
-	var button = style.default.button("Login", function () {
+	var button = style.currentStyle.button("Login", function () {
 		network.emit("login", {
 			username: username.input.value,
 			password: password.input.value
@@ -118,7 +129,7 @@ gameWar.addEventListener("loginscreen", function () {
 	blocktext.appendChild(button);
 	blocktext.appendChild(document.createElement("br"));
 	
-	var guestbutton = style.default.button("Login as guest", function () {
+	var guestbutton = style.currentStyle.button("Login as guest", function () {
 		network.emit("login", false, function (data) {
 			while (message.firstChild) {
 				message.removeChild(message.firstChild);
@@ -137,30 +148,29 @@ gameWar.addEventListener("settings", function () {
 	
 	var message = document.createElement("div");
 	
-	var blocktext = document.createElement("div");
-	blocktext.className = "default_blocktext";
+	var blocktext = style.currentStyle.blockText();
 	blocktext.appendChild(message);
 	blocktext.appendChild(document.createElement("br"));
 	blocktext.appendChild(document.createTextNode("Change your settings (leave blank what you don't want to change): "));
 	blocktext.appendChild(document.createElement("br"));
 	pagediv.appendChild(blocktext);
 	
-	var username = style.default.input("text", "Username");
+	var username = style.currentStyle.labeledInput("text", "Username");
 	blocktext.appendChild(username.label);
 	blocktext.appendChild(username.input);
 	blocktext.appendChild(document.createElement("br"));
 	
-	var password = style.default.input("password", "Password");
+	var password = style.currentStyle.labeledInput("password", "Password");
 	blocktext.appendChild(password.label);
 	blocktext.appendChild(password.input);
 	blocktext.appendChild(document.createElement("br"));
 	
-	var password2 = style.default.input("password", "Password (just to be sure)");
+	var password2 = style.currentStyle.labeledInput("password", "Password (just to be sure)");
 	blocktext.appendChild(password2.label);
 	blocktext.appendChild(password2.input);
 	blocktext.appendChild(document.createElement("br"));
 	
-	var button = style.default.button("Change settings", function () {
+	var button = style.currentStyle.button("Change settings", function () {
 		if (password.input.value !== password2.input.value) {
 			while (message.firstChild) {
 				message.removeChild(message.firstChild);
@@ -192,12 +202,12 @@ gameWar.addEventListener("settings", function () {
 	blocktext.appendChild(document.createTextNode("Add another email."));
 	blocktext.appendChild(document.createElement("br"));
 	
-	var email = style.default.input("email", "Email");
+	var email = style.currentStyle.labeledInput("email", "Email");
 	blocktext.appendChild(email.label);
 	blocktext.appendChild(email.input);
 	blocktext.appendChild(document.createElement("br"));
 	
-	var button = style.default.button("Add email", function () {
+	var button = style.currentStyle.button("Add email", function () {
 		network.emit("changesettings", {
 			email: email.input.value
 		}, function (data) {

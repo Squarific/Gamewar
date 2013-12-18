@@ -1,4 +1,4 @@
-module.exports = function eventhandlers (mysql, CryptoJS) {
+module.exports = function eventhandlers (mysql, CryptoJS, settings) {
 	this.login = function (socket, name, pass, callback) {
 		if (typeof callback !== "function") {
 			callback = function () {};
@@ -136,26 +136,33 @@ module.exports = function eventhandlers (mysql, CryptoJS) {
 		});
 	};
 	
-	this.newGame = function (socket, data, settings, games, callback) {
+	this.newGame = function (socket, data, games, callback) {
 		if (!socket.userdata || typeof socket.userdata.id !== "number") {
 			callback({error: "You can't make a new game when you aren't logged in"});
 			return;
 		}
 		if (typeof settings.games[data.name] !== "string" || !games[data.name]) {
-			callback({error: "This game doesn't exist."});
-			console.log("Someone tried starting a game with name", data.name, "DATA: ", data, "SETTINGS: ", settings, "LOADED GAMES:", games);
+			callback({error: "This game doesn't exist or was not loaded."});
+			console.log("Player " + socket.userdata.id + " tried starting a game but " + data.name + " doesn't exist or was not loaded.");
+			return;
+		}
+		if (!games[data.name].settings.players) {
+			callback({error: "There was an error with game " + data.name + ", it did not specify bounds for players or betamount."});
+			console.log("Player " + socket.userdata.id + " tried starting a game but didn't specify the amount of players or the betamount.");
 			return;
 		}
 		var datasettings = {};
 		for (var key in games[data.name].settings) {
-			data.settings[key] = parseInt(data.settings[key]);
+			data.settings[key] = parseInt(data.settings[key]) || 0;
 			if (!(data.settings[key] >= games[data.name].settings[key].input.min && data.settings[key] <= games[data.name].settings[key].input.max)) {
 				callback({error: key + " was not within the allowed boundry of min " + games[data.name].settings[key].input.min + " and max " + games[data.name].settings[key].input.max + ", value was " + data.settings[key]});
+				console.log("Player " + socket.userdata.id + " tried starting a game of " + data.name + " but the setting " + key + " wasn't within the allowed limits.");
 				return;
 			}
 			datasettings[key] = data.settings[key];
 		}
-		mysql.query("INSERT INTO games_lobby (name) VALUES (" + mysql.escape(data.name) + ")", function (err, result) {
+		console.log(datasettings);
+		mysql.query("INSERT INTO games_lobby (name, creatorid, maxplayers, betamount) VALUES (" + mysql.escape(data.name) + ", " + mysql.escape(socket.userdata.id) + ", " + mysql.escape(datasettings.players) + ", " + mysql.escape(datasettings.betAmount) + ")", function (err, result) {
 			if (err) {
 				console.log("INSERT GAMES LOBBY ERR: ", err);
 				callback({error: err.toString()});
@@ -187,7 +194,40 @@ module.exports = function eventhandlers (mysql, CryptoJS) {
 		});
 	};
 	
-	this.getOpenGames = function () {
-		
+	this.getOpenGames = function (callback) {
+		var query = "SELECT games_lobby.id, games_lobby.name, games_lobby.creatorid, users.username AS creatorname, games_lobby.maxplayers, games_lobby.betamount, COUNT(games_players.gameid) AS currentplayercount FROM games_lobby INNER JOIN games_players ON games_lobby.id = games_players.gameid INNER JOIN users ON games_lobby.creatorid = users.id GROUP BY games_players.gameid HAVING COUNT(games_players.gameid) < games_lobby.maxplayers";
+		mysql.query(query, function (err, rows, fields) {
+			if (err) {
+				console.log("GETOPENGAMES DATABASE ERR: ", err);
+				callback({error: err.toString()});
+				return;
+			}
+			if (rows.length === 0) {
+				callback([]);
+				return;
+			}
+			var idlist = [];
+			for (var key = 0; key < rows.length; key++) {
+				idlist.push(rows[key].id);
+				rows[key].settings = {};
+			}
+			var gamelist = rows;
+			mysql.query("SELECT gameid, settingname, value FROM games_settings WHERE gameid IN(" + idlist.join(", ") + ")", function (err, rows, fields) {
+				if (err) {
+					console.log("GETOPENGAMES GET SETTINGS DATABASE ERR: ", err);
+					callback({error: err.toString()});
+					return;
+				}
+				for (var rowkey = 0; rowkey < rows.length; rowkey++) {
+					for (var gamekey = 0; gamekey < gamelist.length; gamekey++) {
+						if (gamelist[gamekey].id === rows[rowkey].gameid) {
+							gamelist[gamekey].settings[rows[rowkey].settingname] = rows[rowkey].value;
+							break;
+						}
+					}
+				}
+				callback(gamelist);
+			});
+		});
 	};
 }

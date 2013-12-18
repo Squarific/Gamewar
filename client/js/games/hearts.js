@@ -1,5 +1,6 @@
 var GameWar = GameWar || {};
 GameWar.prototype.games = GameWar.prototype.games || {};
+GameWar.prototype.exampleGames = GameWar.prototype.exampleGames || {};
 GameWar.prototype.games.Hearts = function Hearts () {
 	this.description = "Hearts (black lady) game.";
 	this.name = "Hearts (black lady)";
@@ -46,3 +47,4 @@ GameWar.prototype.games.Hearts = function Hearts () {
 		}
 	};
 };
+GameWar.prototype.exampleGames.hearts = new GameWar.prototype.games.Hearts();

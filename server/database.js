@@ -25,10 +25,13 @@ module.exports = {
 		query += "games_lobby (";
 		query += "`id` bigint NOT NULL AUTO_INCREMENT,";
 		query += "`name` varchar(32),";
+		query += "`creatorid` bigint,";
+		query += "`maxplayers` int,"
+		query += "`betamount` bigint,"
 		query += "PRIMARY KEY (id)";
 		query += ")";
 		target.query(query);
-		
+
 		var query = "CREATE TABLE IF NOT EXISTS ";
 		query += "games_settings (";
 		query += "`gameid` bigint NOT NULL,";
@@ -36,7 +39,7 @@ module.exports = {
 		query += "`value` bigint";
 		query += ")";
 		target.query(query);
-		
+
 		var query = "CREATE TABLE IF NOT EXISTS ";
 		query += "games_players (";
 		query += "`gameid` bigint NOT NULL,";
