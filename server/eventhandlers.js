@@ -187,10 +187,34 @@ module.exports = function eventhandlers (mysql, CryptoJS, settings) {
 						callback({error: err.toString()});
 						return;
 					}
-					callback({success: "Game '" + gameId + "' created"});
+					callback({success: "Game '" + gameId + "' created", gameId: gameId});
 					console.log("Game " + data.name + " with ID: " + gameId + " created by USER ID: " + socket.userdata.id);
 				});
 			});
+		});
+	};
+	
+	this.getGamesSettings = function (gamelist, callback) {
+		var idlist = [];
+		for (var key = 0; key < gamelist.length; key++) {
+			idlist.push(gamelist[key].id);
+			gamelist[key].settings = {};
+		}
+		mysql.query("SELECT gameid, settingname, value FROM games_settings WHERE gameid IN(" + idlist.join(", ") + ")", function (err, rows, fields) {
+			if (err) {
+				console.log("GETGAMESETTINGS DATABASE ERR: ", err);
+				callback({error: err.toString()});
+				return;
+			}
+			for (var rowkey = 0; rowkey < rows.length; rowkey++) {
+				for (var gamekey = 0; gamekey < gamelist.length; gamekey++) {
+					if (gamelist[gamekey].id === rows[rowkey].gameid) {
+						gamelist[gamekey].settings[rows[rowkey].settingname] = rows[rowkey].value;
+						break;
+					}
+				}
+			}
+			callback(gamelist);
 		});
 	};
 	
@@ -206,28 +230,14 @@ module.exports = function eventhandlers (mysql, CryptoJS, settings) {
 				callback([]);
 				return;
 			}
-			var idlist = [];
-			for (var key = 0; key < rows.length; key++) {
-				idlist.push(rows[key].id);
-				rows[key].settings = {};
-			}
-			var gamelist = rows;
-			mysql.query("SELECT gameid, settingname, value FROM games_settings WHERE gameid IN(" + idlist.join(", ") + ")", function (err, rows, fields) {
-				if (err) {
-					console.log("GETOPENGAMES GET SETTINGS DATABASE ERR: ", err);
-					callback({error: err.toString()});
-					return;
-				}
-				for (var rowkey = 0; rowkey < rows.length; rowkey++) {
-					for (var gamekey = 0; gamekey < gamelist.length; gamekey++) {
-						if (gamelist[gamekey].id === rows[rowkey].gameid) {
-							gamelist[gamekey].settings[rows[rowkey].settingname] = rows[rowkey].value;
-							break;
-						}
-					}
-				}
-				callback(gamelist);
-			});
+			this.getGamesSettings(rows, callback);
+		}.bind(this));
+	};
+	
+	this.getActiveGames = function (userId) {
+		var query = "SELECT games_lobby.id, games_lobby.name, games_lobby.creatorid, users.username AS creatorname, games_lobby.maxplayers, games_lobby.betamount, COUNT(games_players.gameid) AS currentplayercount FROM games_lobby INNER JOIN games_players ON games_lobby.id = games_players.gameid INNER JOIN users ON games_lobby.creatorid = users.id WHERE games_players.gameid = " + mysql.escape(userId);
+		mysql.query(query, function (err, rows, fields) {
+			console.log(rows);
 		});
 	};
 }

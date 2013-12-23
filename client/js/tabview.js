@@ -5,6 +5,7 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 	while (pagecontainer.firstChild) {
 		pagecontainer.removeChild(pagecontainer.firstChild);
 	}
+
 	this.open = function (title) {
 		var page = document.createElement("div"),
 			tab = document.createElement("div"),
@@ -39,6 +40,26 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 		this.activate(tab);
 		
 		return page;
+	};
+	
+	this.close = function (target) {
+		if (target.tab) {
+			target = target.tab;
+		}
+		var tabContainer = target.parentNode;
+		target.page.parentNode.removeChild(target.page);
+		target.parentNode.removeChild(target);
+		this.activate(tabContainer.firstChild);
+	};
+	
+	this.changeTitle = function (target, title) {
+		if (target.tab) {
+			target = target.tab;
+		}
+		while (target.firstChild) {
+			target.removeChild(target.firstChild);
+		}
+		target.appendChild(document.createTextNode(title));
 	};
 	
 	this.resize = function () {

@@ -1,7 +1,50 @@
 //gameWar callbacks
+gameWar.addEventListener("homepage", function () {
+	var pagediv = tabview.open("Homepage");
+	var block = pagediv.appendChild(style.currentStyle.blockText());
+	block.appendChild(document.createTextNode("Welcome,"));
+	block.appendChild(document.createElement("br"));
+	block.appendChild(document.createElement("br"));
+	block.appendChild(document.createTextNode("On SQUARIFIC gameWar you can play multiplayer games against real people."));
+	block.appendChild(document.createElement("br"));
+	block.appendChild(document.createTextNode("While doing so you can, if you want, bet bitcoins on who wins."));
+	block.appendChild(document.createElement("br"));
+	block.appendChild(document.createElement("br"));
+	block.appendChild(document.createTextNode("You probably want to do this now:"));
+	block.appendChild(document.createElement("br"));
+	var button = block.appendChild(style.currentStyle.button("Login / Register", function () {
+		gameWar.callEvent("loginscreen");
+	}));
+	button.style.textAlign = "center";
+	var button = block.appendChild(style.currentStyle.button("Start or join a game", function () {
+		gameWar.callEvent("gamelobby");
+	}));
+	button.style.textAlign = "center";
+});
+
+gameWar.addEventListener("wallethq", function () {
+	var pagediv = tabview.open("wallethq");
+	var block = pagediv.appendChild(style.currentStyle.blockText());
+	block.appendChild(document.createTextNode("Your wallet status"));
+});
+
+gameWar.addEventListener("activegames", function () {
+	var pagediv = tabview.open("Active games");
+	var block = pagediv.appendChild(style.currentStyle.blockText());
+	block.appendChild(document.createTextNode("Your active games"));
+	network.emit("activegameslist", undefined, function (data) {
+		block.appendChild(style.currentStyle.gameList(gameWar, gamelist));
+	});
+});
+
+gameWar.addEventListener("game", function (gameId) {
+	var pagediv = tabview.open("Game #" + gameId);
+	var textblock = pagediv.appendChild(style.currentStyle.blockText());
+	textblock.appendChild(document.createTextNode("Loading game #" + gameId + " ..."));
+});
 
 gameWar.addEventListener("gamelobby", function () {
-	var pagediv = tabview.open("gamelobby");
+	var pagediv = tabview.open("Gamelobby");
 	var newblock = style.currentStyle.blockText();
 	pagediv.appendChild(newblock);
 	
@@ -58,6 +101,9 @@ gameWar.addEventListener("gamelobby", function () {
 							while (message.firstChild) {
 								message.removeChild(message.firstChild);
 							}
+							if (data.gameId) {
+								gameWar.callEvent("game", data.gameId);
+							}
 							message.appendChild(document.createTextNode(data.success || data.error));
 						});
 					});
@@ -80,17 +126,10 @@ gameWar.addEventListener("gamelobby", function () {
 	pagediv.appendChild(listblock);
 	
 	network.emit("gamelobbylist", undefined, function (gamelist) {
-		for (var key = 0; key < gamelist.length; key++) {
-			gameWar.loadGame(gamelist[key].name, (function (key) {
-				return function () {
-					var button = listblock.appendChild(style.currentStyle.gameButton(gamelist[key], gameWar.exampleGames, (function (gameid, event) {
-						return function () {
-							console.log(gameid);
-						}
-					})(gamelist[key].id)));
-				}
-			})(key));
+		while (listblock.firstChild) {
+			listblock.removeChild(listblock.firstChild);
 		}
+		listblock.appendChild(style.currentStyle.gameList(gameWar, gamelist));
 	});
 });
 
@@ -266,4 +305,34 @@ network.on("accountswitch", function (name) {
 
 network.on("password", function (pass) {
 	localStorage.setItem("gamewar.password", pass);
+});
+
+network.on("connect", function () {
+	network.emit("login", {
+		username: localStorage.getItem("gamewar.username"),
+		password: localStorage.getItem("gamewar.password")
+	}, function (response) {
+		if (response.error) {
+			network.emit("login");
+		}
+	});
+});
+
+network.on("disconnect", function () {
+	var username = document.getElementById("username");
+	
+	while(username.firstChild) {
+		username.removeChild(username.firstChild);
+	}
+	
+	username.appendChild(document.createTextNode("Not connected!"));
+});
+
+network.emit("login", {
+	username: localStorage.getItem("gamewar.username"),
+	password: localStorage.getItem("gamewar.password")
+}, function (response) {
+	if (response.error) {
+		network.emit("login");
+	}
 });

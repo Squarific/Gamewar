@@ -90,5 +90,16 @@ function iobind (io) {
 		socket.on("gamelobbylist", function (data, callback) {
 			eventhandlers.getOpenGames(callback);
 		});
+		
+		socket.on("activegameslist", function (data, callback) {
+			if (typeof callback !== "function") {
+				callback = function () {};
+			}
+			if (!socket.userdata || typeof socket.userdata.id !== "number") {
+				callback({error: "You can't ask for a list of your active games when not logged in."});
+				return;
+			}
+			eventhandlers.getActiveGames(socket.userdata.id, callback);
+		});
 	});
 }
