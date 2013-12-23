@@ -234,10 +234,10 @@ module.exports = function eventhandlers (mysql, CryptoJS, settings) {
 		}.bind(this));
 	};
 	
-	this.getActiveGames = function (userId) {
-		var query = "SELECT games_lobby.id, games_lobby.name, games_lobby.creatorid, users.username AS creatorname, games_lobby.maxplayers, games_lobby.betamount, COUNT(games_players.gameid) AS currentplayercount FROM games_lobby INNER JOIN games_players ON games_lobby.id = games_players.gameid INNER JOIN users ON games_lobby.creatorid = users.id WHERE games_players.gameid = " + mysql.escape(userId);
+	this.getActiveGames = function (userId, callback) {
+		var query = "SELECT games_lobby.id, games_lobby.name, games_lobby.creatorid, users.username AS creatorname, games_lobby.maxplayers, games_lobby.betamount, COUNT(games_players.gameid) AS currentplayercount FROM games_lobby INNER JOIN games_players ON games_lobby.id = games_players.gameid INNER JOIN users ON games_lobby.creatorid = users.id WHERE games_players.playerid = " + mysql.escape(userId) + " GROUP BY games_players.gameid";
 		mysql.query(query, function (err, rows, fields) {
-			console.log(rows);
+			callback(rows);
 		});
 	};
 }
