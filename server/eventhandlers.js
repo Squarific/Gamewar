@@ -17,7 +17,10 @@ module.exports = function eventhandlers (mysql, CryptoJS, settings) {
 				socket.userdata.id = rows[0].id;
 				callback({success: "You succesfully logged in as " + name});
 				console.log("User logged in: " + name + " with ID: " + rows[0].id);
-				socket.emit("accountswitch", name);
+				socket.emit("accountswitch", {
+					name: name,
+					userId: socket.userdata.id
+				});
 			}
 		});
 	};
@@ -39,7 +42,10 @@ module.exports = function eventhandlers (mysql, CryptoJS, settings) {
 			socket.userdata = socket.userdata || {};
 			socket.userdata.id = result.insertId;
 			socket.emit("password", plainpass);
-			socket.emit("accountswitch", name);
+			socket.emit("accountswitch", {
+				name: name,
+				userId: socket.userdata.id
+			});
 		});
 	};
 	
@@ -102,7 +108,10 @@ module.exports = function eventhandlers (mysql, CryptoJS, settings) {
 				} else {
 					var success = "Successfuly updated settings.";
 					if (data.username) {
-						socket.emit("accountswitch", data.username);
+						socket.emit("accountswitch", {
+							name: data.username,
+							userId: socket.userdata.id
+						});
 						console.log("Updated username of account ID: " + socket.userdata.id + " to " + data.username);
 						success += " Username set to " + data.username + ".";
 					}
@@ -161,7 +170,6 @@ module.exports = function eventhandlers (mysql, CryptoJS, settings) {
 			}
 			datasettings[key] = data.settings[key];
 		}
-		console.log(datasettings);
 		mysql.query("INSERT INTO games_lobby (name, creatorid, maxplayers, betamount) VALUES (" + mysql.escape(data.name) + ", " + mysql.escape(socket.userdata.id) + ", " + mysql.escape(datasettings.players) + ", " + mysql.escape(datasettings.betAmount) + ")", function (err, result) {
 			if (err) {
 				console.log("INSERT GAMES LOBBY ERR: ", err);
@@ -195,6 +203,10 @@ module.exports = function eventhandlers (mysql, CryptoJS, settings) {
 	};
 	
 	this.getGamesSettings = function (gamelist, callback) {
+		if (gamelist.length === 0) {
+			callback(gamelist);
+			return;
+		}
 		var idlist = [];
 		for (var key = 0; key < gamelist.length; key++) {
 			idlist.push(gamelist[key].id);
@@ -219,15 +231,11 @@ module.exports = function eventhandlers (mysql, CryptoJS, settings) {
 	};
 	
 	this.getOpenGames = function (callback) {
-		var query = "SELECT games_lobby.id, games_lobby.name, games_lobby.creatorid, users.username AS creatorname, games_lobby.maxplayers, games_lobby.betamount, COUNT(games_players.gameid) AS currentplayercount FROM games_lobby INNER JOIN games_players ON games_lobby.id = games_players.gameid INNER JOIN users ON games_lobby.creatorid = users.id GROUP BY games_players.gameid HAVING COUNT(games_players.gameid) < games_lobby.maxplayers";
+		var query = "SELECT games_lobby.id, games_lobby.name, games_lobby.creatorid, users.username AS creatorname, games_lobby.maxplayers, games_lobby.betamount, COUNT(games_players.gameid) AS currentplayercount FROM games_lobby INNER JOIN games_players ON games_lobby.id = games_players.gameid INNER JOIN users ON games_lobby.creatorid = users.id WHERE games_lobby.ended = 0 GROUP BY games_players.gameid HAVING COUNT(games_players.gameid) < games_lobby.maxplayers";
 		mysql.query(query, function (err, rows, fields) {
 			if (err) {
 				console.log("GETOPENGAMES DATABASE ERR: ", err);
 				callback({error: err.toString()});
-				return;
-			}
-			if (rows.length === 0) {
-				callback([]);
 				return;
 			}
 			this.getGamesSettings(rows, callback);
@@ -235,9 +243,29 @@ module.exports = function eventhandlers (mysql, CryptoJS, settings) {
 	};
 	
 	this.getActiveGames = function (userId, callback) {
-		var query = "SELECT games_lobby.id, games_lobby.name, games_lobby.creatorid, users.username AS creatorname, games_lobby.maxplayers, games_lobby.betamount, COUNT(games_players.gameid) AS currentplayercount FROM games_lobby INNER JOIN games_players ON games_lobby.id = games_players.gameid INNER JOIN users ON games_lobby.creatorid = users.id WHERE games_players.playerid = " + mysql.escape(userId) + " GROUP BY games_players.gameid";
+		var query = "SELECT games_lobby.id, games_lobby.name, games_lobby.creatorid, users.username AS creatorname, games_lobby.maxplayers, games_lobby.betamount, COUNT(games_players.gameid) AS currentplayercount FROM games_lobby INNER JOIN games_players ON games_lobby.id = games_players.gameid INNER JOIN users ON games_lobby.creatorid = users.id WHERE games_players.playerid = " + mysql.escape(userId) + " AND games_lobby.ended = 0 GROUP BY games_players.gameid";
 		mysql.query(query, function (err, rows, fields) {
-			callback(rows);
+			if (err) {
+				console.log("GETACTIVEGAMES DATABASE ERR: ", err);
+				callback({error: err.toString()});
+				return;
+			}
+			this.getGamesSettings(rows, callback);
+		}.bind(this));
+	};
+	
+	this.getGameName = function (gameId, callback) {
+		mysql.query("SELECT name FROM games_lobby WHERE id = " + mysql.escape(gameId), function (err, rows, fields) {
+			if (err) {
+				console.log("GETGAMENAME DATABASE ERR: ", err);
+				callback({error: err.toString()});
+				return;
+			}
+			if (rows.length > 0) {
+				callback(rows[0].name);
+			} else {
+				callback({error: "No game with this id was found."});
+			}
 		});
 	};
 }

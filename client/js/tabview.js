@@ -5,6 +5,8 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 	while (pagecontainer.firstChild) {
 		pagecontainer.removeChild(pagecontainer.firstChild);
 	}
+	
+	var events = {};
 
 	this.open = function (title) {
 		var page = document.createElement("div"),
@@ -23,10 +25,7 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 		page.tab = tab;
 		
 		close.addEventListener("click", function (event) {
-			var tabContainer = (event.target.parentNode.classList.contains("active")) ? event.target.parentNode.parentNode : {};
-			event.target.parentNode.page.parentNode.removeChild(event.target.parentNode.page);
-			event.target.parentNode.parentNode.removeChild(event.target.parentNode);
-			this.activate(tabContainer.firstChild);
+			this.close(event.target.parentNode);
 		}.bind(this), false);
 		
 		tab.addEventListener("click", function (event) {
@@ -43,13 +42,23 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 	};
 	
 	this.close = function (target) {
-		if (target.tab) {
-			target = target.tab;
+		target = target.tab || target;
+		if (!target || !target.page || !target.parentNode) {
+			return;
 		}
-		var tabContainer = target.parentNode;
+		this.callEvent("close", {
+			tab: target,
+			page: target.page
+		});
+		if (target.classList.contains("active")) {
+			var wasActive = true;
+			var activate = target.previousSibling;
+		}
 		target.page.parentNode.removeChild(target.page);
 		target.parentNode.removeChild(target);
-		this.activate(tabContainer.firstChild);
+		if (wasActive) {
+			this.activate(activate);
+		}
 	};
 	
 	this.changeTitle = function (target, title) {
@@ -60,8 +69,14 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 			target.removeChild(target.firstChild);
 		}
 		target.appendChild(document.createTextNode(title));
+		var close = target.appendChild(document.createElement("div"));
+		close.className = "close";
+		close.appendChild(document.createTextNode("X"));
+		close.addEventListener("click", function (event) {
+			this.close(event.target.parentNode);
+		}.bind(this), false);
 	};
-	
+
 	this.resize = function () {
 		var pages = document.getElementsByClassName("page");
 		for (var page = 0; page < pages.length; page++) {
@@ -70,8 +85,9 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 			}
 		}
 	};
-	
+
 	this.activate = function (tab) {
+		tab = tab || tabcontainer.firstChild;
 		if (!tab || !tab.page || !tab.parentNode) {
 			return;
 		}
@@ -86,6 +102,45 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 		tab.page.style.display = "";
 		tab.classList.add("active");
 		this.resize();
+	};
+	
+		this.addEventListeners = function (eventListeners) {
+		for (var eventName in eventListeners) {
+			this.addEventListener(eventName, eventListeners[eventName].cb, eventListeners[eventName].once);
+		}
+	};
+
+	this.addEventListener = function (eventname, eventcallback, once) {
+		events[eventname] = events[eventname] || [];
+		for (var key = 0; key < events[eventname].length; key++) {
+			if (events[eventname][key] === eventcallback) {
+				return true;
+			}
+		}
+		events[eventname].push({
+			cb: eventcallback,
+			once: once
+		});
+	};
+
+	this.callEvent = function (eventname) {
+		var eventArgs = Array.prototype.slice.call(arguments, 1);
+		events[eventname] = events[eventname] || [];
+		for (var key = 0; key < events[eventname].length; key++) {
+			events[eventname][key].cb.apply(this, eventArgs);
+			if (events[eventname][key].once) {
+				events[eventname].splice(key, 1);
+				key--;
+			}
+		}
+	};
+
+	this.removeEventListener = function (eventName, cb) {
+		events[eventName] = events[eventName] || [];
+		var index = events[eventName].indexOf(cb)
+		if (index !== -1) {
+			events[eventName].splice(index, 1);
+		}
 	};
 	
 	window.addEventListener("resize", this.resize);

@@ -8,17 +8,20 @@ var settings = require("./settings.js");
 var database = require("./database.js");
 var CryptoJS = require("./CryptoJSSha256.js");
 var Eventhandlers = require("./eventhandlers.js");
+var MessageManager = require("./messagemanager.js");
 
 var mysql = require("mysql").createConnection({
 	host: settings.database.hostname,
 	user: settings.database.username,
 	password: settings.database.password
 });
+
 var eventhandlers = new Eventhandlers(mysql, CryptoJS, settings);
+var messages = new MessageManager(eventhandlers);
 
 var games = {};
 for (var key in settings.games) {
-	games[key] = new (require("./games/" + key + ".js"))(mysql);
+	games[key] = new (require("./games/" + key + ".js"))(mysql, messages);
 }
 
 mysql.connect(function (err) {
@@ -100,6 +103,14 @@ function iobind (io) {
 				return;
 			}
 			eventhandlers.getActiveGames(socket.userdata.id, callback);
+		});
+		
+		socket.on("gamename", function (data, callback ) {
+			eventhandlers.getGameName(data, callback);
+		});
+		
+		socket.on("gameMessage", function (data) {
+			messages.callback(socket, data);
 		});
 	});
 }

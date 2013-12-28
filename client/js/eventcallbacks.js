@@ -12,12 +12,18 @@ gameWar.addEventListener("homepage", function () {
 	block.appendChild(document.createElement("br"));
 	block.appendChild(document.createTextNode("You probably want to do this now:"));
 	block.appendChild(document.createElement("br"));
-	var button = block.appendChild(style.currentStyle.button("Login / Register", function () {
+	var button = block.appendChild(style.currentStyle.button("Start or join a game", function () {
+		gameWar.callEvent("gamelobby");
+	}));
+	button.style.textAlign = "center";
+	block.appendChild(document.createElement("br"));
+	block.appendChild(document.createElement("br"));
+	var button = block.appendChild(style.currentStyle.button("Login", function () {
 		gameWar.callEvent("loginscreen");
 	}));
 	button.style.textAlign = "center";
-	var button = block.appendChild(style.currentStyle.button("Start or join a game", function () {
-		gameWar.callEvent("gamelobby");
+	var button = block.appendChild(style.currentStyle.button("Register", function () {
+		gameWar.callEvent("settings");
 	}));
 	button.style.textAlign = "center";
 });
@@ -32,8 +38,17 @@ gameWar.addEventListener("activegames", function () {
 	var pagediv = tabview.open("Active games");
 	var block = pagediv.appendChild(style.currentStyle.blockText());
 	block.appendChild(document.createTextNode("Your active games"));
+	var list = block.appendChild(document.createElement("div"));
+	list.appendChild(document.createTextNode("Loading..."));
 	network.emit("activegameslist", undefined, function (data) {
-		block.appendChild(style.currentStyle.gameList(gameWar, gamelist));
+		while (list.firstChild) {
+			list.removeChild(list.firstChild);
+		}
+		if (data.error) {
+			list.appendChild(document.createTextNode(data.error));
+			return;
+		}
+		list.appendChild(style.currentStyle.gameList(gameWar, data));
 	});
 });
 
@@ -41,6 +56,14 @@ gameWar.addEventListener("game", function (gameId) {
 	var pagediv = tabview.open("Game #" + gameId);
 	var textblock = pagediv.appendChild(style.currentStyle.blockText());
 	textblock.appendChild(document.createTextNode("Loading game #" + gameId + " ..."));
+	gameWar.openGame(gameId, pagediv, function (game) {
+		tabview.changeTitle(pagediv, game.name + " #" + gameId);
+		tabview.addEventListener("close", function (event) {
+			if (event.page === pagediv) {
+				game.close();
+			}
+		}, true);
+	});
 });
 
 gameWar.addEventListener("gamelobby", function () {
@@ -70,13 +93,12 @@ gameWar.addEventListener("gamelobby", function () {
 	network.emit("gamelist", undefined, function (data) {
 		for (var key in data) {
 			var gamebutton = style.currentStyle.button(data[key], function (event) {
-				gameWar.loadGame(event.target.game, function () {
+				gameWar.loadGame(event.target.game, function (game) {
 					while (settingList.firstChild) {
 						settingList.removeChild(settingList.firstChild);
 					}
 					var gamename = event.target.game;
-					var constructorName = gamename.charAt(0).toUpperCase() + gamename.slice(1);
-					var game = new gameWar.games[constructorName]();
+					var game = gameWar.exampleGames[gamename];
 					var settings = {};
 					for (var key in game.settings) {
 						var input = style.currentStyle.labeledInput(game.settings[key].type, game.settings[key].label);
@@ -124,12 +146,16 @@ gameWar.addEventListener("gamelobby", function () {
 	listblock.appendChild(document.createTextNode("Or join one of the other games"));
 	listblock.style.maxHeight = "80%";
 	pagediv.appendChild(listblock);
+	var list = document.createElement("div");
+	list.appendChild(document.createElement("br"));
+	list.appendChild(document.createTextNode("Loading joinable games..."));
+	listblock.appendChild(list);
 	
 	network.emit("gamelobbylist", undefined, function (gamelist) {
-		while (listblock.firstChild) {
-			listblock.removeChild(listblock.firstChild);
+		while (list.firstChild) {
+			list.removeChild(list.firstChild);
 		}
-		listblock.appendChild(style.currentStyle.gameList(gameWar, gamelist));
+		list.appendChild(style.currentStyle.gameList(gameWar, gamelist));
 	});
 });
 
@@ -292,15 +318,17 @@ gameWar.addEventListener("settings", function () {
 
 //Network callbacks
 
-network.on("accountswitch", function (name) {
+network.on("accountswitch", function (data) {
 	var username = document.getElementById("username");
 	
 	while(username.firstChild) {
 		username.removeChild(username.firstChild);
 	}
 	
-	username.appendChild(document.createTextNode(name));
-	localStorage.setItem("gamewar.username", name);
+	username.appendChild(document.createTextNode(data.name));
+	localStorage.setItem("gamewar.username", data.name);
+	
+	gameWar.userId = data.userId;
 });
 
 network.on("password", function (pass) {

@@ -76,11 +76,55 @@ var style = {
 			for (var key = 0; key < gamelist.length; key++) {
 				gameWar.loadGame(gamelist[key].name, (function (game) {
 					return function () {
-						var button = list.appendChild(style.currentStyle.gameButton(game, gameWar.exampleGames, gameWar));
-					}
-				})(gamelist[key]));
+						var button = list.appendChild(this.gameButton(game, gameWar.exampleGames, gameWar));
+					}.bind(this)
+				}.bind(this))(gamelist[key]));
+			}
+			if (gamelist.length === 0) {
+				list.appendChild(document.createElement("br"));
+				list.appendChild(document.createTextNode("There are no games to be listed here."));
 			}
 			return list;
+		},
+		lobbyPlayerList: function (gameWar, gameData) {
+			var playerlist = document.createElement("div");
+			playerlist.className = "default_lobby_block";
+			playerlist.appendChild(document.createTextNode("Players (" + gameData.players.length + "/" + gameData.maxPlayers + "):"));
+			playerlist.appendChild(document.createElement("br"));
+			for (var key = 0; key < gameData.players.length; key++) {
+				playerlist.appendChild(document.createElement("br"));
+				var text = gameData.players[key].username + " [" + gameData.players[key].id + "]";
+				if (gameData.players[key].id === gameData.creatorId) {
+					text += " (Creator)";
+				}
+				var button = playerlist.appendChild(this.button(text, function (event) {
+					gameWar.callEvent("profile", event.target.playerId);
+				}));
+				button.playerId = gameData.players[key].id;
+				button.style.minWidth = "92%";
+				button.style.margin = "3px";
+			}
+			return playerlist
+		},
+		lobbySettingsList: function (gameData, settingList) {
+			var settingslist = document.createElement("div");
+			settingslist.className = "default_lobby_block";
+			settingslist.appendChild(document.createTextNode("Gamesettings:"));
+			settingslist.appendChild(document.createElement("br"));
+			settingslist.appendChild(document.createElement("br"));
+			for (var key in gameData.settings) {
+				settingslist.appendChild(this.label(settingList[key].label));
+				settingslist.appendChild(document.createElement("br"));
+				settingslist.appendChild(document.createTextNode(gameData.settings[key]));
+				settingslist.appendChild(document.createElement("br"));
+				settingslist.appendChild(document.createElement("br"));
+			}
+			return settingslist;
+		},
+		lobbyBlock: function () {
+			var block = document.createElement("div")
+			block.className = "default_lobby_block";
+			return block;
 		}
 	}
 };
