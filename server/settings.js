@@ -15,6 +15,9 @@ module.exports = {
 	games: {
 		"hearts": "Hearts (Black Lady)"
 	},
+	gameSettings: {
+		cacheTime: 1500
+	},
 	backup: {
 		emails: ["alemaaltevinden@gmail.com"]
 	}

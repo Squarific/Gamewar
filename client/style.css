@@ -17,8 +17,8 @@ body {
 	font-size:32px;
 	padding:6px;
 	cursor:pointer;
-	transition-duration: .2s;
-	-webkit-transition-duration: .2s;
+	transition-duration: .3s;
+	-webkit-transition-duration: .3s;
 }
 .title:hover {
 	color:red;
@@ -98,6 +98,9 @@ body {
 	top:0;
 	width:100%;
 	background:rgb(145, 145, 145);
+}
+.clickable {
+	cursor:pointer;
 }
 .default_label {
 	display:inline-block;

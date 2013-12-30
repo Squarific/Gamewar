@@ -1,7 +1,7 @@
-console.log("=================================================");
-console.log("========= gameWar SQUARIFIC Server V0.1 =========");
-console.log("========= CopyRight SQUARIFIC           =========");
-console.log("=================================================");
+console.log("====================================================");
+console.log("========== gameWar SQUARIFIC Server V0.1a ==========");
+console.log("========== CopyRight SQUARIFIC            ==========");
+console.log("====================================================");
 console.log("");
 
 var settings = require("./settings.js");
@@ -18,11 +18,7 @@ var mysql = require("mysql").createConnection({
 
 var eventhandlers = new Eventhandlers(mysql, CryptoJS, settings);
 var messages = new MessageManager(eventhandlers);
-
 var games = {};
-for (var key in settings.games) {
-	games[key] = new (require("./games/" + key + ".js"))(mysql, messages);
-}
 
 mysql.connect(function (err) {
 	if (err) throw err;
@@ -33,6 +29,12 @@ mysql.connect(function (err) {
 	database.createTables(mysql);
 	
 	console.log("Connected to databse, created database and created tables.");
+
+	for (var key in settings.games) {
+		games[key] = new (require("./games/" + key + ".js"))(mysql, messages, settings.gameSettings);
+	}
+	
+	console.log("All games loaded succesfully.");
 	
 	var io = require("socket.io").listen(settings.server.port);
 	io.set('log level', 2);

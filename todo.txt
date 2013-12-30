@@ -1,11 +1,12 @@
 GENERAL
-tabs:		- requestattention
+	tabs:
+		- requestattention
 		- sort
-gamelists:	- refresh
-games		- Maximum amount of games startable
+	gamelists:
+		- refresh
+	games
+		- Maximum amount of games startable
 		- Kill games after X amount of time
-
-
-
 GAMES:
-Hearts:		- Fix leave when already started (?)
+	Hearts:	
+		- Fix leave when already started (?)

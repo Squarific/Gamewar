@@ -115,5 +115,5 @@ var GameWar = function GameWar () {
 	network.on("gameMessage", this.receiveMessage);
 };
 
-var network = io.connect("gamewar.squarific.com");
+var network = io.connect("gamewar.squarific.com:8080");
 var gameWar = new GameWar();
