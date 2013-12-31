@@ -45,18 +45,22 @@ module.exports = function Hearts (mysql, messages, settings) {
 				Number: Math.floor(x / 4)				Note: Every cards number is 2 units lower than it's face value because it is 0-indexed and A is the last card
 		Card positions:
 			0											Not yet shuffled
-			1 -> max_players: 							Hand of that player
-			max_players + 1 -> max_players * 2:			Pointcontainer of that player
-			max_players * 2 + 1 -> max_players * 3:		Table at position: x - max_players * 2
-			max_players * 3 + 1 -> max_players  * 6		Cards that want to be passed, cards from player at tableposition x: max_players * 3 + x, max_players * 4 + x, max_players * 5 + x
+			1 -> max_players 							Hand of that player
+			max_players + 1 -> max_players * 2			Pointcontainer of that player
+			max_players * 2 + 1 -> max_players * 3		Table at position: x - max_players * 2
+			max_players * 3 + 1	-> max_players * 4		Cards that want to be passed, cards from player
+			13, 14, 15, 16
+			13, 14, 15, 16
+			1, 2, 3, 0
+			1, 2, 3, 1
 	*/
 	
 	var gameListeners = {};
 	var helpers = {
 		createDatabase: function () {
-			/*mysql.query("DROP TABLE games_hearts_cards");
+			mysql.query("DROP TABLE games_hearts_cards");
 			mysql.query("DROP TABLE games_hearts_playerdata");
-			mysql.query("DROP TABLE games_hearts_gamedata");*/
+			mysql.query("DROP TABLE games_hearts_gamedata");
 			var query = "CREATE TABLE IF NOT EXISTS ";
 			query += "games_hearts_cards (";
 			query += "`gameid` bigint NOT NULL,";
@@ -151,6 +155,7 @@ module.exports = function Hearts (mysql, messages, settings) {
 			}
 		},
 		sendGameData: function (gameId, socket) {
+			gameListeners[gameId] = gameListeners[gameId] || [];
 			mysql.query("SELECT cardtype, position FROM games_hearts_cards WHERE gameid = " + mysql.escape(gameId), function (err, cards, fields) {
 				if (err) {
 					console.log("SENDGAMEDATA DATABASE ERROR GET CARDS: " + err);
@@ -200,7 +205,7 @@ module.exports = function Hearts (mysql, messages, settings) {
 		cardsAllowedToBeViewed: function (cards, playerpos, playeramount) {
 			var viewcards = [];
 			for (var k = 0; k < cards.length; k++) {
-				if (cards[k].position === playerpos || (cards[k].position > playeramount * 2 && cards[k].position <= playeramount * 3) || (cards[k].position > playeramount * 3 && (cards[k].position - playerpos) % playeramount === 0)) {
+				if (cards[k].position === playerpos || (cards[k].position > playeramount * 2 && cards[k].position <= playeramount * 3) || (cards[k].position > playeramount * 3 && (cards[k].position % playeramount) === playerpos % playeramount)) {
 					viewcards.push(cards[k]);
 				}
 			}
@@ -288,6 +293,135 @@ module.exports = function Hearts (mysql, messages, settings) {
 					helpers.sendGameData(gameId);
 				});
 			});
+		},
+		passCard: function (gameId, playerid, cardtype, socket) {
+			mysql.query("SELECT playerid, tableposition FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId), function (err, players, fields) {
+				if (err) {
+					console.log("ERROR SELLECTING PLAYERDATA ON CARD ERR: " + err);
+					messages.emit(socket, gameId, "error", err + "");
+					return;
+				}
+				for (var key = 0; key < players.length; key++) {
+					if (players[key].playerid === playerid) {
+						var player = players[key];
+					}
+				}
+				mysql.query("SELECT cardtype, position FROM games_hearts_cards WHERE gameid = " + mysql.escape(gameId), function (err, cards, fields) {
+					if (err) {
+						console.log("ERROR SELECTING CARDS ON CARD ERR: " + err);
+						messages.emit(socket, gameId, "error", err + "");
+						return;
+					}
+					var passingcards = [];
+					for (var key = 0; key < cards.length; key++) {
+						if (cards[key].cardtype === cardtype && cards[key].position !== player.tableposition) {
+							if (cards[key].position === players.length * 3 + player.tableposition) {
+								mysql.query("UPDATE games_hearts_cards SET position = " + mysql.escape(player.tableposition) + " WHERE gameid = " + mysql.escape(gameId) + " AND cardtype = " + mysql.escape(cardtype), function (err, rows, fields) {
+									if (err) {
+										console.log("GAMES: HEARTS: PASSCARD DATABASE ERROR SET POSTION BACK TO HANDCARD ERR: " + err);
+										messages.emit(socket, gameId, "error", "There was a database error.");
+										return;
+									}
+									helpers.sendGameData(gameId, socket);
+								});
+								return;
+							} else if (cards[key].position !== player.tableposition) {
+								messages.emit(socket, gameId, "error", "This card isn't in your hand so you can't pass it.");
+								return;
+							}
+						}
+						if (cards[key].position > players.length * 3 && cards[key].position <= players.length * 4 && cards[key].position % players.length === player.tableposition) {
+							passingcards.push(cards[key]);
+						}
+					}
+					if (passingcards.length > 2) {
+						messages.emit(socket, gameId, "error", "You have already selected 3 cards to pass.");
+					} else {
+						mysql.query("UPDATE games_hearts_cards SET position = " + mysql.escape(players.length * 3 + player.tableposition) + " WHERE gameid = " + mysql.escape(gameId) + " AND cardtype = " + mysql.escape(cardtype));
+						helpers.sendGameData(gameId, socket);
+						helpers.playFirstCard(gameId);
+					}
+				});
+			});
+		},
+		playCard: function (gameId, playerid, cardtype, socket) {
+			
+		},
+		isLegalMove: function (gameId, cardtype, callback) {
+			
+		},
+		passAllCards: function (gameId, callback) {
+			mysql.query("SELECT count(*) AS playercount FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId), function (err, rows, fields) {
+				if (err) {
+					console.log("GAMES: HEARTS: DATABASE ERROR WHILE TRYING TO SELECT PLAYERCOUNT FOR PASSALLCARDS ERR: " + err);
+					return;
+				}
+				mysql.query("SELECT round FROM games_hearts_gamedata WHERE gameid = " + mysql.escape(gameId), function (err, gamedata, fields) {
+					if (err) {
+						console.log("GAMES: HEARTS: DATABASE ERROR WHILE TRYING TO SELECT ROUND FOR PASSALLCARDS ERR: " + err);
+						return;
+					}
+					mysql.query("UPDATE games_hearts_cards SET position = ((position + " + mysql.escape(gamedata[0].round) + ") % " + mysql.escape(rows[0].playercount) + ") + 1 WHERE gameid = " + mysql.escape(gameId) + " AND position > " + mysql.escape(rows[0].playercount * 3) + " AND position <= " + mysql.escape(rows[0].playercount * 4), function (err, row, fields) {
+						if (err) {
+							console.log("GAMES: HEARTS: DATABASE ERROR WHILE TRYING TO PASSALLCARDS ERR: " + err);
+							return;
+						}
+						mysql.query("UPDATE games_hearts_gamedata SET passedcards = 1 WHERE gameid = " + mysql.escape(gameId), function () {
+							if (err) {
+								console.log("GAMES: HEARTS: DATABASE ERROR WHILE TRYING TO SET PASSEDCARDS TO ONE PASSALLCARDS ERR: " + err);
+								return;
+							}
+							callback();
+						});
+					});
+				});
+			});
+		},
+		playFirstCard: function (gameId) {
+			mysql.query("SELECT count(*) AS playercount FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId), function (err, rows, fields) {
+				if (err) {
+					console.log("GAMES: HEARTS: DATABASE ERROR WHILE TRYING TO SEE IF EVERYONE PASSED A CARD AND SELECTING PLAYERCOUNT ERR: " + err);
+					return;
+				}
+				mysql.query("SELECT count(*) AS cardcount FROM games_hearts_cards WHERE gameid = " + mysql.escape(gameId) + " AND position > " + mysql.escape(rows[0].playercount * 3) + " AND position <= " + mysql.escape(rows[0].playercount * 4), function (err, cards, fields) {
+					if (err) {
+						console.log("GAMES: HEARTS: DATABASE ERROR WHILE TRYING TO SEE IF EVERYONE PASSED A CARD ERR: " + err);
+						return;
+					}
+					if (cards[0].cardcount === rows[0].playercount * 3) {
+						helpers.playFirstCardChecked(gameId);
+					}
+				});
+			});
+		},
+		playFirstCardChecked: function (gameId) {
+			helpers.passAllCards(gameId, function () {
+				mysql.query("SELECT count(*) AS playercount FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId), function (err, gamedata, fields) {
+					if (err) {
+						console.log("HEARTS: DATABASE ERROR SELECTING PLAYERCOUNT FOR PLAYFIRSTCARDCHECKED ERR: " + err);
+						return;
+					}
+					mysql.query("SELECT position FROM games_hearts_cards WHERE gameid = " + mysql.escape(gameId) + " AND cardtype = 3", function (err, rows, fields) {
+						if (err) {
+							console.log("HEARTS: DATABASE ERROR SELECTING THE ONE WITH STARTCARD AT PLAYFIRSTCARDCHECKED ERR: " + err);
+							return;
+						}
+						mysql.query("UPDATE games_hearts_gamedata SET currentstarter = " + mysql.escape(rows[0].position) + " WHERE gameid = " + mysql.escape(gameId), function (err) {
+							if (err) {
+								console.log("HEARTS: DATABASE ERROR UPDATING CURRENTSTARTER AT PLAYFIRSTCARDCHECKED ERR: " + err);
+								return;
+							}
+							mysql.query("UPDATE games_hearts_cards SET position = " + mysql.escape(gamedata[0].playercount * 2 + 1) + " WHERE gameid = " + mysql.escape(gameId) + " AND cardtype = 3", function (err) {
+								if (err) {
+									console.lgo("HEARTS: DATABASE ERROR UPDATING POSITION OF CARDTYPE 3 ERR: " + err);
+									return;
+								}
+								helpers.sendGameData(gameId);
+							});
+						});
+					});
+				});
+			});
 		}
 	};
 	
@@ -299,12 +433,12 @@ module.exports = function Hearts (mysql, messages, settings) {
 				} else {
 					helpers.getGameLobbyData(gameId, function (gameData) {
 						messages.emit(socket, gameId, "gamelobby", gameData);
-						helpers.addGameListener(gameId, socket);
-						socket.on("disconnect", function () {
-							helpers.removeGameListener(socket);
-						});
 					});
 				}
+				helpers.addGameListener(gameId, socket);
+				socket.on("disconnect", function () {
+					helpers.removeGameListener(socket);
+				});
 			});
 		}.bind(this),
 		start: function (socket, gameId, data) {
@@ -330,7 +464,7 @@ module.exports = function Hearts (mysql, messages, settings) {
 					});
 					var query = [];
 					for (var key = 0; key < gameData.players.length; key++) {
-						query.push("(" + mysql.escape(gameId) + "," + mysql.escape(gameData.players[key].id) + "," + key + ")");
+						query.push("(" + mysql.escape(gameId) + "," + mysql.escape(gameData.players[key].id) + "," + mysql.escape(key + 1) + ")");
 					}
 					mysql.query("INSERT INTO games_hearts_playerdata (gameid, playerid, tableposition) VALUES " + query.join(", "));
 					helpers.startNewGameRound(gameId);
@@ -407,7 +541,21 @@ module.exports = function Hearts (mysql, messages, settings) {
 				}
 				messages.emit(socket, gameId, "error", "You can't leave a game that you aren't in.");
 			});
-		}.bind(this)
+		}.bind(this),
+		card: function (socket, gameId, cardtype) {
+			mysql.query("SELECT passedcards FROM games_hearts_gamedata WHERE gameid = " + mysql.escape(gameId), function (err, gamedata, fields) {
+				if (err) {
+					console.log("ERROR SELLECTING GAMEDATA ON CARD ERR: " + err);
+					messages.emit(socket, gameId, "error", err + "");
+					return;
+				}
+				if (!gamedata[0].passedcards) {
+					helpers.passCard(gameId, socket.userdata.id, cardtype, socket);
+				} else {
+					helpers.playCard(gameId, socket.userdata.id, cardtype, socket);
+				}
+			});
+		}
 	};
 	
 	helpers.createDatabase();

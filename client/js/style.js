@@ -60,7 +60,7 @@ var style = {
 			button.addEventListener("click", callback);
 			button.appendChild(this.gamelabel("Gamename: " + games[game.name].name));
 			button.appendChild(this.gamelabel("Started by: " + game.creatorname));
-			button.appendChild(this.gamelabel("Players: " + game.currentplayercount + "/" + game.maxplayers));
+			button.appendChild(this.gamelabel("Players: " + ((typeof game.currentplayercount === "number") ? game.currentplayercount + "/" : "") + game.maxplayers));
 			button.appendChild(this.gamelabel("Bet amount: " + game.betamount));
 			button.appendChild(document.createElement("br"));
 			for (var key in game.settings) {

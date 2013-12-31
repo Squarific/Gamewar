@@ -1,12 +1,12 @@
 module.exports = {
 	createTables: function (target) {
 		
-		/*target.query("DROP TABLE games_settings");
+		target.query("DROP TABLE games_settings");
 		target.query("DROP TABLE games_players");
 		target.query("DROP TABLE games_lobby");
 		target.query("DROP TABLE users");
-		target.query("DROP TABLE emails");*/
-		
+		target.query("DROP TABLE emails");
+
 		var query = "CREATE TABLE IF NOT EXISTS ";
 		query += "users (";
 		query += "`id` bigint NOT NULL AUTO_INCREMENT,";

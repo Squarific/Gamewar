@@ -181,6 +181,7 @@ gameWar.addEventListener("loginscreen", function () {
 	blocktext.appendChild(document.createElement("br"));
 	
 	var button = style.currentStyle.button("Login", function () {
+		var plainpassword = password.input.value;
 		network.emit("login", {
 			username: username.input.value,
 			password: password.input.value
@@ -189,6 +190,9 @@ gameWar.addEventListener("loginscreen", function () {
 				message.removeChild(message.firstChild);
 			}
 			message.appendChild(document.createTextNode(data.error || data.success));
+			if (data.success) {
+				localStorage.setItem("gamewar.password", plainpassword);
+			}
 		});
 	});
 	blocktext.appendChild(button);
@@ -354,13 +358,4 @@ network.on("disconnect", function () {
 	}
 	
 	username.appendChild(document.createTextNode("Not connected!"));
-});
-
-network.emit("login", {
-	username: localStorage.getItem("gamewar.username"),
-	password: localStorage.getItem("gamewar.password")
-}, function (response) {
-	if (response.error) {
-		network.emit("login");
-	}
 });

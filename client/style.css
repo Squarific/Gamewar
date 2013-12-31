@@ -140,6 +140,14 @@ body {
 	background:rgb(134, 70, 20);
 	border-bottom:2px solid rgb(75, 50, 14);
 }
+.default_green_button {
+	background:rgb(100, 170, 25);
+	border-bottom:2px solid rgb(17, 99, 24);
+}
+.default_green_button:hover {
+	background:rgb(77, 129, 20);
+	border-bottom:2px solid rgb(9, 51, 12);
+}
 .default_lobby_block {
 	text-align:left;
 	display:inline-block;
