@@ -10,109 +10,109 @@ var CryptoJS = require("./CryptoJSSha256.js");
 var Eventhandlers = require("./eventhandlers.js");
 var MessageManager = require("./messagemanager.js");
 
-var mysql = require("mysql").createConnection({
-	host: settings.database.hostname,
-	user: settings.database.username,
-	password: settings.database.password
-});
+var mysqlManager = require("mysql");
+var mysql;
+
+function createConnection () {
+	mysql = mysqlManager.createConnection({
+		host: settings.database.hostname,
+		user: settings.database.username,
+		password: settings.database.password
+	});
+	
+	mysql.on("error", function (err) {
+		if(err.code !== 'PROTOCOL_CONNECTION_LOST') {
+			console.log("Unhandled database error: " + err);
+		}
+		console.log("Database connection lost: reconnecting to the database.");
+		setTimeout(createConnection(), 1000);
+	});
+}
+
+createConnection();
 
 var eventhandlers = new Eventhandlers(mysql, CryptoJS, settings);
 var messages = new MessageManager(eventhandlers);
 var games = {};
 
-mysql.connect(function (err) {
-	if (err) throw err;
-	
-	mysql.query("CREATE DATABASE IF NOT EXISTS " + settings.database.database);
-	mysql.query("USE " + settings.database.database);
-	
-	database.createTables(mysql);
-	
-	console.log("Connected to databse, created database and created tables.");
+database.createDatabaseAndTables(mysql, settings.database);
 
-	for (var key in settings.games) {
-		games[key] = new (require("./games/" + key + ".js"))(mysql, messages, settings.gameSettings);
-	}
-	
-	console.log("All games loaded succesfully.");
-	
-	var io = require("socket.io").listen(settings.server.port);
-	io.set('log level', 2);
-	
-	console.log("Accepting connections on port " + settings.server.port);
-	iobind(io);
-});
-
-function iobind (io) {
-	io.sockets.on("connection", function (socket) {
-		socket.on("login", function (data, callback) {
-			if (typeof callback !== "function") {
-				callback = function () {};
-			}
-			if (!data || !data.username) {
-				if (!data || !socket.userdata || !socket.userdata.name) {
-					eventhandlers.newguest(socket, callback);
-				} else {
-					callback({error: "Please provide the name of the account you want to login to."});
-				}
-			} else {
-				eventhandlers.login(socket, data.username, CryptoJS.SHA256(data.password), callback);
-			}
-		});
-
-		socket.on("changesettings", function (data, callback) {
-			if (typeof callback !== "function") {
-				callback = function () {};
-			}
-			eventhandlers.changeUserSettings(socket, data, callback);
-		});
-		
-		socket.on("emaillist", function (data, callback) {
-			if (typeof callback !== "function") {
-				callback = function () {};
-			}
-			if (!socket.userdata || typeof socket.userdata.id !== "number") {
-				callback({error: "You can't ask for emails when not logged in."});
-				return;
-			}
-			eventhandlers.emails(socket.userdata.id, callback);
-		});
-		
-		socket.on("gamelist", function (data, callback) {
-			if (typeof callback !== "function") {
-				callback = function () {};
-			}
-			callback(settings.games);
-		});
-		
-		socket.on("newgame", function (data, callback) {
-			if (typeof callback !== "function") {
-				callback = function () {};
-			}
-			eventhandlers.newGame(socket, data, games, callback);
-		});
-		
-		socket.on("gamelobbylist", function (data, callback) {
-			eventhandlers.getOpenGames(callback);
-		});
-		
-		socket.on("activegameslist", function (data, callback) {
-			if (typeof callback !== "function") {
-				callback = function () {};
-			}
-			if (!socket.userdata || typeof socket.userdata.id !== "number") {
-				callback({error: "You can't ask for a list of your active games when not logged in."});
-				return;
-			}
-			eventhandlers.getActiveGames(socket.userdata.id, callback);
-		});
-		
-		socket.on("gamename", function (data, callback ) {
-			eventhandlers.getGameName(data, callback);
-		});
-		
-		socket.on("gameMessage", function (data) {
-			messages.callback(socket, data);
-		});
-	});
+for (var key in settings.games) {
+	games[key] = new (require("./games/" + key + ".js"))(mysql, messages, settings.gameSettings);
 }
+console.log("All games loaded succesfully.");
+	
+var io = require("socket.io").listen(settings.server.port);
+io.set('log level', 1);
+io.sockets.on("connection", function (socket) {
+	socket.on("login", function (data, callback) {
+		if (typeof callback !== "function") {
+			callback = function () {};
+		}
+		if (!data || !data.username) {
+			if (!data || !socket.userdata || !socket.userdata.name) {
+				eventhandlers.newguest(socket, callback);
+			} else {
+				callback({error: "Please provide the name of the account you want to login to."});
+			}
+		} else {
+			eventhandlers.login(socket, data.username, CryptoJS.SHA256(data.password), callback);
+		}
+	});
+
+	socket.on("changesettings", function (data, callback) {
+		if (typeof callback !== "function") {
+			callback = function () {};
+		}
+		eventhandlers.changeUserSettings(socket, data, callback);
+	});
+	
+	socket.on("emaillist", function (data, callback) {
+		if (typeof callback !== "function") {
+			callback = function () {};
+		}
+		if (!socket.userdata || typeof socket.userdata.id !== "number") {
+			callback({error: "You can't ask for emails when not logged in."});
+			return;
+		}
+		eventhandlers.emails(socket.userdata.id, callback);
+	});
+	
+	socket.on("gamelist", function (data, callback) {
+		if (typeof callback !== "function") {
+			callback = function () {};
+		}
+		callback(settings.games);
+	});
+	
+	socket.on("newgame", function (data, callback) {
+		if (typeof callback !== "function") {
+			callback = function () {};
+		}
+		eventhandlers.newGame(socket, data, games, callback);
+	});
+	
+	socket.on("gamelobbylist", function (data, callback) {
+		eventhandlers.getOpenGames(callback);
+	});
+	
+	socket.on("activegameslist", function (data, callback) {
+		if (typeof callback !== "function") {
+			callback = function () {};
+		}
+		if (!socket.userdata || typeof socket.userdata.id !== "number") {
+			callback({error: "You can't ask for a list of your active games when not logged in."});
+			return;
+		}
+		eventhandlers.getActiveGames(socket.userdata.id, callback);
+	});
+	
+	socket.on("gamename", function (data, callback ) {
+		eventhandlers.getGameName(data, callback);
+	});
+	
+	socket.on("gameMessage", function (data) {
+		messages.callback(socket, data);
+	});
+});
+console.log("Accepting connections on port " + settings.server.port);

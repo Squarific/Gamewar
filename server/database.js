@@ -1,5 +1,7 @@
 module.exports = {
-	createTables: function (target) {
+	createDatabaseAndTables: function (target, settings) {
+		target.query("CREATE DATABASE IF NOT EXISTS " + settings.database);
+		target.query("USE " + settings.database);
 		
 		target.query("DROP TABLE games_settings");
 		target.query("DROP TABLE games_players");
@@ -61,6 +63,10 @@ module.exports = {
         query += "FOREIGN KEY (playerid)";
         query += "REFERENCES users(id)";
 		query += ")";
-		target.query(query);
+		target.query(query, function (err) {
+			if (!err) {
+				console.log("Connected to databse, created database and created tables.");
+			}
+		});
 	}
 };
