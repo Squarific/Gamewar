@@ -191,12 +191,12 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 			}
 			console.log(passingTo);
 			
-			var greenplayer = passingTo.tableposition || (gamedata.currentstarter + tablecards.length) % gamedata.players.length || gamedata.players.length;
+			var greenplayer = passingTo.tableposition || helpers.whoHasToPlay(gamedata, tablecards);
 
 			var block = targetdiv.appendChild(style.currentStyle.blockText());
 			errorDiv = block.appendChild(document.createElement("div"));
 			var table = block.appendChild(gameStylers.table(gamedata.players, greenplayer));
-			
+
 			for (var key = 0; key < gamedata.players.length; key++) {
 				if (gamedata.players[key].tableposition === greenplayer) {
 					var currentplayer = gamedata.players[key];
@@ -225,8 +225,30 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 		cardClick: function (event) {
 			gameWar.sendMessage(gameId, "card", event.target.cardtype);
 		},
-		isPlayersTurn: function () {
-			
+		whoHasToPlay: function (gamedata, tablecards) {
+			if (gamedata.players.length === tablecards.length) {
+				gamedata.highestPlayedCard = gamedata.highestPlayedCard || helpers.highestPlayedCard(gamedata, tablecards);
+				return (gamedata.currentstarter + (gamedata.highestPlayedCard.position % gamedata.players.length || gamedata.players.length) - 1) % gamedata.players.length || gamedata.players.length;
+			}
+			return (gamedata.currentstarter + tablecards.length) % gamedata.players.length || gamedata.players.length;
+		},
+		highestPlayedCard: function (gamedata, tablecards) {
+			var highest = helpers.firstPlayedCard(tablecards, gamedata);
+				firstCardKind = highest.cardtype % 4;
+			for (var key = 0; key < tablecards.length; key++) {
+				if (tablecards[key].cardtype % 4 === firstCardKind && tablecards[key].cardtype > highest.cardtype) {
+					highest = tablecards[key];
+				}
+			}
+			return highest;
+		},
+		firstPlayedCard: function (tablecards, gamedata) {
+			for (var key = 0; key < tablecards.length; key++) {
+				if (tablecards[key].position === gamedata.players.length * 2 + 1) {
+					return tablecards[key];
+				}
+			}
+			return false;
 		}
 	};
 

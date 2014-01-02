@@ -350,14 +350,14 @@ module.exports = function Hearts (mysql, messages, settings) {
 			});
 		},
 		playCard: function (gameId, playerId, cardtype, socket) {
-			mysql.query("SELECT (SELECT count(*) FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId) + ") as maxplayers, (SELECT currentstarter FROM games_hearts_gamedata WHERE gameid = " + mysql.escape(gameId) + ") AS currentstarter, tableposition FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId) + " AND playerid = " + mysql.escape(playerId) + " GROUP BY gameid", function (err, player, fields) {
+			mysql.query("SELECT (SELECT count(*) FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId) + ") as maxplayers, games_hearts_gamedata.currentstarter, games_hearts_playerdata.tableposition FROM games_hearts_playerdata INNER JOIN games_hearts_gamedata ON games_hearts_playerdata.gameid = games_hearts_gamedata.gameid WHERE games_hearts_gamedata.gameid = " + mysql.escape(gameId) + " AND games_hearts_playerdata.playerid = " + mysql.escape(playerId), function (err, player, fields) {
 				if (err) {
 					console.log("GAMES: HEARTS: DATABASE ERRRO SELECT MAXPLAYERS PLAYCARD ERR: " + err);
 					messages.emit(socket, gameId, "error", "DATABASE ERROR: " + err);
 					return;
 				}
 				player = player[0];
-				var gamedata.maxplayers = players.maxplayers;
+				var gamedata = player;
 				mysql.query("SELECT cardtype, position FROM games_hearts_cards WHERE gameid = " + mysql.escape(gameId), function (err, cards, fields) {
 					if (err) {
 						messages.emit(socket, gameId, "error", "DATABASE ERROR: " + err);
@@ -367,7 +367,6 @@ module.exports = function Hearts (mysql, messages, settings) {
 					var tablecards = helpers.tableCards(gamedata, cards);
 					var nextposition = gamedata.maxplayers * 2 + 1 + tablecards.length % gamedata.maxplayers;
 					var whoHasToPlay = helpers.whoHasToPlay(gamedata, tablecards);
-					console.log(cards, tablecards, nextposition, whoHasToPlay, gamedata, player);
 					if (player.tableposition !== whoHasToPlay) {
 						messages.emit(socket, gameId, "error", "It is not currently your turn!");
 						return;
@@ -376,13 +375,13 @@ module.exports = function Hearts (mysql, messages, settings) {
 						messages.emit(socket, gameId, "error", "You don't have this card!");
 						return;
 					}
-					if (!helpers.isLegalMove(cardtype, gamedata, cards, tablecards)) {
+					if (!helpers.isLegalMove(cardtype, player.tableposition, gamedata, cards, tablecards)) {
 						messages.emit(socket, gameId, "error", "That is not a valid move.");
 						return;
 					}
 					if (tablecards.length === gamedata.maxplayers) {
-						gamedata.highestPlayedCard = helpers.highestPlayedCard(gamedata, tablecards) || gamedata.highestPlayedCard;
 						mysql.query("UPDATE games_hearts_cards SET position = " + mysql.escape(gamedata.maxplayers + whoHasToPlay) + " WHERE gameid = " + mysql.escape(gameId) + " AND position > " + mysql.escape(gamedata.maxplayers * 2) + " AND position <= " + mysql.escape(gamedata.maxplayers * 3));
+						mysql.query("UPDATE games_hearts_gamedata SET currentstarter = " + mysql.escape(whoHasToPlay) + " WHERE gameid = " + mysql.escape(gameId));
 					}
 					mysql.query("UPDATE games_hearts_cards SET position = " + mysql.escape(nextposition) + " WHERE gameid = " + mysql.escape(gameId) + " AND cardtype = " + mysql.escape(cardtype));
 					helpers.sendGameData(gameId);
@@ -412,7 +411,7 @@ module.exports = function Hearts (mysql, messages, settings) {
 		whoHasToPlay: function (gamedata, tablecards) {
 			if (gamedata.maxplayers === tablecards.length) {
 				gamedata.highestPlayedCard = gamedata.highestPlayedCard || helpers.highestPlayedCard(gamedata, tablecards);
-				return gamedata.highestPlayedCard.position % gamedata.maxplayers || gamedata.maxplayers;
+				return (gamedata.currentstarter + (gamedata.highestPlayedCard.position % gamedata.maxplayers || gamedata.maxplayers) - 1) % gamedata.maxplayers || gamedata.maxplayers;
 			}
 			return (gamedata.currentstarter + tablecards.length) % gamedata.maxplayers || gamedata.maxplayers;
 		},
@@ -426,20 +425,28 @@ module.exports = function Hearts (mysql, messages, settings) {
 			}
 			return highest;
 		},
-		isLegalMove: function (cardtype, gamedata, cards, tablecards) {
+		isLegalMove: function (cardtype, tableposition, gamedata, cards, tablecards) {
 			if (!tablecards) {
 				tablecards = helpers.tableCards(gamedata, cards);
 			}
-			var firstKind = helpers.firstPlayedKind(tablecards, gamedata);
-			if (typeof firstKind === "number" && firstKind !== cardtype % 4) {
-				return false;
+			var firstKind = helpers.firstPlayedCard(tablecards, gamedata).cardtype % 4;
+			if (tablecards.length === gamedata.maxplayers) {
+				//UNLESS HEARTS THEN CHECK FOR BROKEN
+				return true;
+			}
+			if (firstKind !== cardtype % 4) {
+				for (var key = 0; key < cards.length; key++) {
+					if (cards[key].position === tableposition && cards[key].cardtype % 4 === firstKind) {
+						return false;
+					}
+				}
 			}
 			return true;
 		},
 		firstPlayedCard: function (tablecards, gamedata) {
 			for (var key = 0; key < tablecards.length; key++) {
-				if (cards[key].position === gamedata.maxplayers * 3 + 1) {
-					return cards[key];
+				if (tablecards[key].position === gamedata.maxplayers * 2 + 1) {
+					return tablecards[key];
 				}
 			}
 			return false;
