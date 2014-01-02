@@ -2,6 +2,7 @@ GENERAL
 	tabs:
 		- requestattention
 		- sort
+		- close on ctrl+w
 	gamelists:
 		- refresh
 	games

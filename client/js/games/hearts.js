@@ -46,11 +46,12 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 	};
 
 	var lastGameData = {};
+	var errorDiv;
 
 	var gameStylers = {
-		table: function (players, starter) {
+		table: function (players, green) {
 			var div = document.createElement("div");
-			div.appendChild(document.createTextNode("Players in this game (the green player played the first card on the table): "));
+			div.appendChild(document.createTextNode("Players in this game: "));
 			div.appendChild(document.createElement("br"));
 			players.sort(function (a, b) {
 				return a.tableposition - b.tableposition;
@@ -59,7 +60,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 				var button = div.appendChild(style.currentStyle.button(players[key].username + " (" + players[key].points + ")", function (event) {
 					gameWar.callEvent("profile", event.target.playerid);
 				}));
-				if (players[key].tableposition === starter) {
+				if (players[key].tableposition === green) {
 					button.classList.add("default_green_button");
 				}
 				button.playerid = players[key].id;
@@ -70,7 +71,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 			}
 			return div;
 		},
-		cards: function (cards, grouped, text) {
+		cards: function (cards, grouped, text, clickable) {
 			var div = document.createElement("div");
 			div.appendChild(document.createTextNode(text));
 			div.appendChild(document.createElement("br"));
@@ -84,18 +85,20 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 				});
 			}
 			for (var k = 0; k < cards.length; k++) {
-				div.appendChild(gameStylers.card(cards[k].cardtype));
+				div.appendChild(gameStylers.card(cards[k].cardtype, clickable));
 			}
 			return div;
 		},
-		card: function (cardtype) {
+		card: function (cardtype, clickable) {
 			var img = document.createElement("img");
-			img.className = "clickable";
 			img.alt = cardtype;
 			img.style.margin = "5px";
 			img.src = "images/hearts/cards/" + cardtype + ".png";
 			img.cardtype = cardtype;
-			img.addEventListener("click", helpers.cardClick);
+			if (clickable) {
+				img.addEventListener("click", helpers.cardClick);
+				img.className = "clickable";
+			}
 			return img;
 		},
 		arrow: function () {
@@ -114,6 +117,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 			}
 			var block = targetdiv.appendChild(style.currentStyle.blockText());
 			block.style.textAlign = "center";
+			errorDiv = block.appendChild(document.createElement("div"));
 			var playerList = block.appendChild(style.currentStyle.lobbyPlayerList(gameWar, data));
 			var settingList = block.appendChild(style.currentStyle.lobbySettingsList(data, this.settings));
 			var actionList = block.appendChild(style.currentStyle.lobbyBlock());
@@ -169,23 +173,35 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 				return a.position - b.position;
 			});
 
+			var passingTo = {};
 			if (!gamedata.passedcards) {
 				for (var key = 0; key < gamedata.players.length; key++) {
-					if (gamedata.players[key].id === gameWar.id) {
-						var passingTo = ((player.tableposition + gamedata.round) % gamedata.players.length) + 1;
+					if (gamedata.players[key].id === gameWar.userId) {
+						passingTo = ((gamedata.players[key].tableposition + gamedata.round) % gamedata.players.length) + 1;
 						break;
 					}
 				}
 				
 				for (var key = 0; key < gamedata.players.length; key++) {
 					if (gamedata.players[key].tableposition === passingTo) {
-						var passingTo = gamedata.players[key].username;
+						passingTo = gamedata.players[key];
+						break;
 					}
 				}
 			}
+			console.log(passingTo);
 			
+			var greenplayer = passingTo.tableposition || (gamedata.currentstarter + tablecards.length) % gamedata.players.length || gamedata.players.length;
+
 			var block = targetdiv.appendChild(style.currentStyle.blockText());
-			var table = block.appendChild(gameStylers.table(gamedata.players, gamedata.currentstarter));
+			errorDiv = block.appendChild(document.createElement("div"));
+			var table = block.appendChild(gameStylers.table(gamedata.players, greenplayer));
+			
+			for (var key = 0; key < gamedata.players.length; key++) {
+				if (gamedata.players[key].tableposition === greenplayer) {
+					var currentplayer = gamedata.players[key];
+				}
+			}
 
 			if (tablecards.length > 0) {
 				block.appendChild(document.createElement("br"));
@@ -193,16 +209,24 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 			}
 			if (passingcards.length > 0) {
 				block.appendChild(document.createElement("br"));
-				var passingcards = block.appendChild(gameStylers.cards(passingcards, true, "You are passing the following cards. Once everyone has selected 3 cards they will be passed and the game begins."));
+				var passingcards = block.appendChild(gameStylers.cards(passingcards, true, "You are passing the following cards. Once everyone has selected 3 cards they will be passed and the game begins.", true));
 			}
 			if (handcards.length > 0) {
 				block.appendChild(document.createElement("br"));
-				var text = "Click on the card " + ((gamedata.passedcards) ? "that you want to play." : "that you want to pass to someone else. You are passing cards to " + passingTo);
-				var handcards = block.appendChild(gameStylers.cards(handcards, true, "These are you handcards. " + text));
+				var text = "These are your handcards.";
+				if (!gamedata.passedcards) {
+					text += " Click on the card that you want to pass to someone else. You are passing cards to " + passingTo.username + ".";
+				} else if (gameWar.userId === currentplayer.id) {
+					text += " Click on the card that you want to play.";
+				}
+				var handcards = block.appendChild(gameStylers.cards(handcards, true, text, !gamedata.passedcards || gameWar.userId === currentplayer.id));
 			}
 		},
 		cardClick: function (event) {
 			gameWar.sendMessage(gameId, "card", event.target.cardtype);
+		},
+		isPlayersTurn: function () {
+			
 		}
 	};
 
@@ -218,7 +242,15 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 				helpers.drawTable(data);
 				lastGameData = data;
 				console.log(data);
-			}.bind(this)
+			}.bind(this),
+			error: function (error) {
+				if (errorDiv) {
+					while (errorDiv.firstChild) {
+						errorDiv.removeChild(errorDiv.firstChild);
+					}
+					errorDiv.appendChild(style.currentStyle.error(error));
+				}
+			}
 		};
 		gameWar.addNetworkListeners(gameId, listeners);
 		gameWar.sendMessage(gameId, "opengame");

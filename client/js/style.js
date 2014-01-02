@@ -125,6 +125,12 @@ var style = {
 			var block = document.createElement("div")
 			block.className = "default_lobby_block";
 			return block;
+		},
+		error: function (error) {
+			var errorDiv = document.createElement("div");
+			errorDiv.appendChild(document.createTextNode(error));
+			errorDiv.className = "default_error_message";
+			return errorDiv;
 		}
 	}
 };
