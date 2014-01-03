@@ -177,7 +177,7 @@ module.exports = function Hearts (mysql, messages, settings) {
 						}
 						return;
 					}
-					mysql.query("SELECT currentstarter, passedcards, round FROM games_hearts_gamedata WHERE gameid = " + mysql.escape(gameId), function (err, gamedata, fields) {
+					mysql.query("SELECT currentstarter, brokenhearts, passedcards, round FROM games_hearts_gamedata WHERE gameid = " + mysql.escape(gameId), function (err, gamedata, fields) {
 						if (err) {
 							console.log("SENDGAMEDATA DATABASE ERROR GET GAMEDATA: " + err);
 							if (socket) {
@@ -350,7 +350,7 @@ module.exports = function Hearts (mysql, messages, settings) {
 			});
 		},
 		playCard: function (gameId, playerId, cardtype, socket) {
-			mysql.query("SELECT (SELECT count(*) FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId) + ") as maxplayers, games_hearts_gamedata.currentstarter, games_hearts_playerdata.tableposition FROM games_hearts_playerdata INNER JOIN games_hearts_gamedata ON games_hearts_playerdata.gameid = games_hearts_gamedata.gameid WHERE games_hearts_gamedata.gameid = " + mysql.escape(gameId) + " AND games_hearts_playerdata.playerid = " + mysql.escape(playerId), function (err, player, fields) {
+			mysql.query("SELECT (SELECT count(*) FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId) + ") as maxplayers, games_hearts_gamedata.currentstarter, games_hearts_gamedata.brokenhearts, games_hearts_playerdata.tableposition FROM games_hearts_playerdata INNER JOIN games_hearts_gamedata ON games_hearts_playerdata.gameid = games_hearts_gamedata.gameid WHERE games_hearts_gamedata.gameid = " + mysql.escape(gameId) + " AND games_hearts_playerdata.playerid = " + mysql.escape(playerId), function (err, player, fields) {
 				if (err) {
 					console.log("GAMES: HEARTS: DATABASE ERRRO SELECT MAXPLAYERS PLAYCARD ERR: " + err);
 					messages.emit(socket, gameId, "error", "DATABASE ERROR: " + err);
@@ -383,8 +383,26 @@ module.exports = function Hearts (mysql, messages, settings) {
 						mysql.query("UPDATE games_hearts_cards SET position = " + mysql.escape(gamedata.maxplayers + whoHasToPlay) + " WHERE gameid = " + mysql.escape(gameId) + " AND position > " + mysql.escape(gamedata.maxplayers * 2) + " AND position <= " + mysql.escape(gamedata.maxplayers * 3));
 						mysql.query("UPDATE games_hearts_gamedata SET currentstarter = " + mysql.escape(whoHasToPlay) + " WHERE gameid = " + mysql.escape(gameId));
 					}
+					if (tablecards.length === gamedata.maxplayers - 1) {
+						var lastcard = true;
+						for (var key = 0; key < cards.length; key++) {
+							if (cards[key].position <= gamedata.maxplayers && cards[key].cardtype !== cardtype) {
+								lastcard = false;
+								break;
+							}
+						}
+					}
+					if (cardtype % 4 === 0) {
+						mysql.query("UPDATE games_hearts_gamedata SET brokenhearts = 1 WHERE gameid = " + mysql.escape(gameId));
+					}
 					mysql.query("UPDATE games_hearts_cards SET position = " + mysql.escape(nextposition) + " WHERE gameid = " + mysql.escape(gameId) + " AND cardtype = " + mysql.escape(cardtype));
 					helpers.sendGameData(gameId);
+					if (lastcard) {
+						tablecards.push({cardtype: cardtype, position: nextposition});
+						var whoHasToPlay = helpers.whoHasToPlay(gamedata, tablecards);
+						mysql.query("UPDATE games_hearts_cards SET position = " + mysql.escape(gamedata.maxplayers + whoHasToPlay) + " WHERE gameid = " + mysql.escape(gameId) + " AND position > " + mysql.escape(gamedata.maxplayers * 2) + " AND position <= " + mysql.escape(gamedata.maxplayers * 3));
+						helpers.roundEnded(gameId);
+					}
 				});
 			});
 		},
@@ -431,7 +449,13 @@ module.exports = function Hearts (mysql, messages, settings) {
 			}
 			var firstKind = helpers.firstPlayedCard(tablecards, gamedata).cardtype % 4;
 			if (tablecards.length === gamedata.maxplayers) {
-				//UNLESS HEARTS THEN CHECK FOR BROKEN
+				if (!gamedata.brokenhearts && cardtype % 4 === 0) {
+					for (var key = 0; key < cards.length; key++) {
+						if (cards[key].position === tableposition && cards[key].cardtype % 4 !== 0) {
+							return false;
+						}
+					}
+				}
 				return true;
 			}
 			if (firstKind !== cardtype % 4) {
@@ -523,6 +547,45 @@ module.exports = function Hearts (mysql, messages, settings) {
 					});
 				});
 			});
+		},
+		roundEnded: function (gameId) {
+			mysql.query("SELECT cardtype, position FROM games_hearts_cards WHERE gameid = " + mysql.escape(gameId), function (err, cards, fields) {
+				if (err) {
+					console.log("GAMES: HEARTS: DATABASE ERROR ROUNDENDED SELECTING CARDS: " + err);
+					return;
+				}
+				mysql.query("SELECT count(*) AS maxplayers FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId), function (err, gamedata, fields) {
+					if (err) {
+						console.log("GAMES: HEARTS: DATABASE ERROR ROUNDENDED SELECT PLAYERCOUNT: " + err);
+						return;
+					}
+					gamedata = gamedata[0];
+					var points = {};
+					for (var key = 0; key < cards.length; key++) {
+						if (cards[key].cardtype % 4 === 0) {
+							var tableposition = cards[key].position % gamedata.maxplayers || gamedata.maxplayers;
+							points[tableposition] = points[tableposition] || 0;
+							points[tableposition]++;
+						} else if (cards[key].cardtype === 41) {
+							var tableposition = cards[key].position % gamedata.maxplayers || gamedata.maxplayers;
+							points[tableposition] = points[tableposition] || 0;
+							points[tableposition] += 13;
+						}
+					}
+					var tablepositions = [],
+						whens = "";
+					for (var tblpos in points) {
+						tablepositions.push(tblpos);
+						whens += " WHEN " + mysql.escape(parseInt(tblpos)) + " THEN points + " + points[tblpos];
+					}
+					mysql.query("UPDATE games_hearts_playerdata SET points = CASE tableposition" + whens + " END WHERE gameid = " + mysql.escape(gameId) + " AND tableposition IN (" + tablepositions.join(", ") + ")");
+					mysql.query("UPDATE games_hearts_gamedata SET passedcards = 0, brokenhearts = 0, round = round + 1 WHERE gameid = " + mysql.escape(gameId));
+					helpers.startNewGameRound(gameId);
+				});
+			});
+		},
+		gameEnded: function (gameId) {
+			
 		}
 	};
 	
