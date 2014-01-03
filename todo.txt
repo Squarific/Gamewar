@@ -3,8 +3,6 @@ GENERAL
 		- requestattention
 		- sort
 		- close on ctrl+w
-	gamelist
-		- Show gamedescription when creating a game
 	games:
 		- Kill games after X amount of time
 	transactions:
@@ -13,7 +11,7 @@ GENERAL
 		- Withdrawal
 GAMES:
 	GENERAL:
-		- Show description in window
-		- Kick people
+		- Show description in window*
+		- Kick people*
 	Hearts:	
-		- On game end
+		- On game end*

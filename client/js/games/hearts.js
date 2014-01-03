@@ -1,6 +1,6 @@
 var gameWarGames = gameWarGames || {};
 gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
-	this.description = "Hearts (black lady) game.";
+	this.description = "<div class=\"default_label\">Hearts (black lady) game.</div><br/> Hearts is a game where the goal is to have as little points as possible. The person with the least points when one of the players reaches 'End points' is the winner. <br/><br/> Every player is given 13 cards. Each players gives another player (who depends on the round) 3 of their own cards and receives 3 cards from someone. The player with clubs 2 is the first player to lay a card on the table. Then it is played in order. <br/><br/> Everyone lays a card on the table that has to match the type of the card that was first laid on the table unless a player can't do that, then they are free to choose any card they want.<br/><br/> When all players have put a card on the table the person with the highest card of the kind that was first laid has to take the four cards with him and has to play a new cards out of hes hand which cannot be one of the heart types unless someone already laid it or if the player doesn't have another card.<br/><br/> When everyone has laid all their cards, every player gets a score added to their points. Every heart card is one point and the spades lady is worth 13. After that a new round begins untill someone has a score of 'End points'.";
 	this.name = "Hearts (black lady)";
 	this.settings = {
 		players: {
@@ -120,6 +120,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 			errorDiv = block.appendChild(document.createElement("div"));
 			var playerList = block.appendChild(style.currentStyle.lobbyPlayerList(gameWar, data));
 			var settingList = block.appendChild(style.currentStyle.lobbySettingsList(data, this.settings));
+			settingList.innerHTML += this.description;
 			var actionList = block.appendChild(style.currentStyle.lobbyBlock());
 			actionList.appendChild(document.createTextNode("Actions: "));
 			actionList.appendChild(document.createElement("br"));

@@ -91,19 +91,22 @@ gameWar.addEventListener("gamelobby", function () {
 	newblock.appendChild(document.createTextNode("Start a new game"));
 	newblock.appendChild(document.createElement("br"));
 	
-	var gamelist = style.currentStyle.blockText();
+	var gamelist = style.currentStyle.lobbyBlock();
 	gamelist.style.maxHeight = "300px";
-	gamelist.style.maxWidth = "250px";
-	gamelist.style.display = "inline-block";
-	gamelist.style.verticalAlign = "top";
+	gamelist.style.background = "white";
 	newblock.appendChild(gamelist);
 	
-	var settingList = style.currentStyle.blockText();
-	settingList.style.maxWidth = "250px";
+	var settingList = style.currentStyle.lobbyBlock();
 	settingList.style.maxHeight = "350px";
-	settingList.style.display = "inline-block";
-	settingList.style.verticalAlign = "top";
+	settingList.style.background = "white";
 	newblock.appendChild(settingList);
+	
+	var descriptionBlock = style.currentStyle.lobbyBlock();
+	descriptionBlock.style.maxHeight = "350px"
+	descriptionBlock.style.display = "none";
+	descriptionBlock.style.padding = "10px";
+	descriptionBlock.style.overflowY = "auto";
+	newblock.appendChild(descriptionBlock);
 	
 	network.emit("gamelist", undefined, function (data) {
 		for (var key in data) {
@@ -112,8 +115,13 @@ gameWar.addEventListener("gamelobby", function () {
 					while (settingList.firstChild) {
 						settingList.removeChild(settingList.firstChild);
 					}
+					while (descriptionBlock.firstChild) {
+						descriptionBlock.removeChild(descriptionBlock.firstChild);
+					}
 					var gamename = event.target.game;
 					var game = gameWar.exampleGames[gamename];
+					descriptionBlock.innerHTML = game.description;
+					descriptionBlock.style.display = "inline-block";
 					var settings = {};
 					for (var key in game.settings) {
 						var input = style.currentStyle.labeledInput(game.settings[key].type, game.settings[key].label);
@@ -151,8 +159,8 @@ gameWar.addEventListener("gamelobby", function () {
 				});
 			});
 			gamebutton.game = key;
-			gamebutton.style.minWidth = "200px";
-			gamebutton.style.maxWidth = "200px";
+			gamebutton.style.minWidth = "320px";
+			gamebutton.style.maxWidth = "320px";
 			gamelist.appendChild(gamebutton);
 		}
 	});
