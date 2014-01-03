@@ -1,17 +1,15 @@
 GENERAL
-	tabs:
+	tabs
 		- requestattention
 		- sort
 		- close on ctrl+w
-	games:
+	games
 		- Kill games after X amount of time
-	transactions:
+	transactions
 		- History in wallet hq
 		- Put funds in
 		- Withdrawal
-GAMES:
-	GENERAL:
-		- Show description in window*
-		- Kick people*
-	Hearts:	
+GAMES
+	Hearts
 		- On game end*
+		- Kick people*
