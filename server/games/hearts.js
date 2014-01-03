@@ -572,6 +572,17 @@ module.exports = function Hearts (mysql, messages, settings) {
 							points[tableposition] += 13;
 						}
 					}
+					for (var tblpos in points) {
+						if (points[tblpos] === 26) {
+							for (var key = 1; key <= gamedata.maxplayers; key++) {
+								if (key !== tblpos) {
+									points[key] = 26;
+								}
+							}
+							points[tblpos] = 0;
+							break;
+						}
+					}
 					var tablepositions = [],
 						whens = "";
 					for (var tblpos in points) {
@@ -580,6 +591,7 @@ module.exports = function Hearts (mysql, messages, settings) {
 					}
 					mysql.query("UPDATE games_hearts_playerdata SET points = CASE tableposition" + whens + " END WHERE gameid = " + mysql.escape(gameId) + " AND tableposition IN (" + tablepositions.join(", ") + ")");
 					mysql.query("UPDATE games_hearts_gamedata SET passedcards = 0, brokenhearts = 0, round = round + 1 WHERE gameid = " + mysql.escape(gameId));
+					//GAME END?
 					helpers.startNewGameRound(gameId);
 				});
 			});

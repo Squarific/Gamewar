@@ -1,4 +1,5 @@
 //gameWar callbacks
+
 gameWar.addEventListener("homepage", function () {
 	var pagediv = tabview.open("Homepage");
 	var block = pagediv.appendChild(style.currentStyle.blockText());
@@ -40,16 +41,30 @@ gameWar.addEventListener("activegames", function () {
 	block.appendChild(document.createTextNode("Your active games"));
 	var list = block.appendChild(document.createElement("div"));
 	list.appendChild(document.createTextNode("Loading..."));
-	network.emit("activegameslist", undefined, function (data) {
-		while (list.firstChild) {
-			list.removeChild(list.firstChild);
-		}
-		if (data.error) {
-			list.appendChild(document.createTextNode(data.error));
-			return;
-		}
-		list.appendChild(style.currentStyle.gameList(gameWar, data));
-	});
+	
+	function updateList () {
+		network.emit("activegameslist", undefined, function (data) {
+			while (list.firstChild) {
+				list.removeChild(list.firstChild);
+			}
+			var button = list.appendChild(style.currentStyle.button("Refresh", function (event) {
+				if (!event.target.classList.contains("default_disabled")) {
+					updateList();
+				}
+				event.target.classList.add("default_disabled");
+				while (event.target.firstChild) {
+					event.target.removeChild(event.target.firstChild);
+				}
+				event.target.appendChild(document.createTextNode("Refreshing..."));
+			}));
+			if (data.error) {
+				list.appendChild(document.createTextNode(data.error));
+				return;
+			}
+			list.appendChild(style.currentStyle.gameList(gameWar, data));
+		});
+	}
+	updateList();
 });
 
 gameWar.addEventListener("game", function (gameId) {
@@ -151,12 +166,25 @@ gameWar.addEventListener("gamelobby", function () {
 	list.appendChild(document.createTextNode("Loading joinable games..."));
 	listblock.appendChild(list);
 	
-	network.emit("gamelobbylist", undefined, function (gamelist) {
-		while (list.firstChild) {
-			list.removeChild(list.firstChild);
-		}
-		list.appendChild(style.currentStyle.gameList(gameWar, gamelist));
-	});
+	function updateList () {
+		network.emit("gamelobbylist", undefined, function (gamelist) {
+			while (list.firstChild) {
+				list.removeChild(list.firstChild);
+			}
+			var button = list.appendChild(style.currentStyle.button("Refresh", function (event) {
+				if (!event.target.classList.contains("default_disabled")) {
+					updateList();
+				}
+				event.target.classList.add("default_disabled");
+				while (event.target.firstChild) {
+					event.target.removeChild(event.target.firstChild);
+				}
+				event.target.appendChild(document.createTextNode("Refreshing..."));
+			}));
+			list.appendChild(style.currentStyle.gameList(gameWar, gamelist));
+		});
+	}
+	updateList();
 });
 
 gameWar.addEventListener("loginscreen", function () {

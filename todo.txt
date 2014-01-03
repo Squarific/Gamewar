@@ -3,11 +3,17 @@ GENERAL
 		- requestattention
 		- sort
 		- close on ctrl+w
-	gamelists:
-		- refresh
-	games
-		- Maximum amount of games startable
+	gamelist
+		- Show gamedescription when creating a game
+	games:
 		- Kill games after X amount of time
+	transactions:
+		- History in wallet hq
+		- Put funds in
+		- Withdrawal
 GAMES:
+	GENERAL:
+		- Show description in window
+		- Kick people
 	Hearts:	
-		- Fix leave when already started (?)
+		- On game end

@@ -148,6 +148,10 @@ body {
 	background:rgb(77, 129, 20);
 	border-bottom:2px solid rgb(9, 51, 12);
 }
+.default_disabled {
+	background:rgb(156, 127, 104);
+	cursor:default;
+}
 .default_lobby_block {
 	text-align:left;
 	display:inline-block;
