@@ -11,5 +11,4 @@ GENERAL
 		- Withdrawal
 GAMES
 	Hearts
-		- On game end*
 		- Kick people*

@@ -157,6 +157,26 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 				targetdiv.removeChild(targetdiv.firstChild);
 			}
 			
+			for (var key = 0; key < gamedata.players.length; key++) {
+				if (gamedata.players[key].points >= gamedata.endpoints) {
+					var lowest = 0,
+						winners = [];
+					for (var key = 0; key < gamedata.players.length; key++) {
+						if (gamedata.players[key].points >= gamedata.endpoints) {
+							if (gamedata.players[key].points < lowest) {
+								lowest = gamedata.players[key].points;
+								winners = [gamedata.players[key].username];
+							} else if (gamedata.players[key].points === lowest) {
+								winners.push(gamedata.players[key].username);
+							}
+						}
+					}
+					var block = targetdiv.appendChild(style.currentStyle.createTextBlock());
+					block.appendChild(document.createTextNode("This game has been ended already. " + winners.join(" and ") + " won the game."));
+					return;
+				}
+			}
+			
 			var handcards = [];
 			var passingcards = [];
 			var tablecards = [];

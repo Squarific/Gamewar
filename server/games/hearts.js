@@ -177,7 +177,7 @@ module.exports = function Hearts (mysql, messages, settings) {
 						}
 						return;
 					}
-					mysql.query("SELECT currentstarter, brokenhearts, passedcards, round FROM games_hearts_gamedata WHERE gameid = " + mysql.escape(gameId), function (err, gamedata, fields) {
+					mysql.query("SELECT (SELECT value FROM games_settings WHERE gameid = " + mysql.escape(gameId) + " AND settingname = 'endPoints') AS endpoints, currentstarter, brokenhearts, passedcards, round FROM games_hearts_gamedata WHERE gameid = " + mysql.escape(gameId), function (err, gamedata, fields) {
 						if (err) {
 							console.log("SENDGAMEDATA DATABASE ERROR GET GAMEDATA: " + err);
 							if (socket) {
@@ -591,13 +591,26 @@ module.exports = function Hearts (mysql, messages, settings) {
 					}
 					mysql.query("UPDATE games_hearts_playerdata SET points = CASE tableposition" + whens + " END WHERE gameid = " + mysql.escape(gameId) + " AND tableposition IN (" + tablepositions.join(", ") + ")");
 					mysql.query("UPDATE games_hearts_gamedata SET passedcards = 0, brokenhearts = 0, round = round + 1 WHERE gameid = " + mysql.escape(gameId));
-					//GAME END?
-					helpers.startNewGameRound(gameId);
+					mysql.query("SELECT points FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId), function (err, players, fields) {
+						mysql.query("SELECT value FROM games_settings WHERE gameid = " + mysql.escape(gameId) + " AND settingname = 'endPoints'", function (err, rows, fields) {
+							var endPoints = rows[0];
+							for (var key = 0; key < players.length; key++) {
+								if (players[key].points >= endPoints.value) {
+									var ended = true;
+									break;
+								}
+							}
+							if (ended) {
+								//Game has ended
+								mysql.query("UPDATE games_lobby SET ended = 1 WHERE id = " + mysql.escape(gameId));
+								console.log("GAMES: HEARTS: game: " + gameId + " has ended.");
+							} else {
+								helpers.startNewGameRound(gameId);
+							}
+						});
+					});
 				});
 			});
-		},
-		gameEnded: function (gameId) {
-			
 		}
 	};
 	
