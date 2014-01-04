@@ -5,7 +5,11 @@ GENERAL
 		- close on ctrl+w
 	games
 		- Kill games after X amount of time
+		- Chat (?)
 	transactions
 		- History in wallet hq
 		- Put funds in
 		- Withdrawal
+	profile
+		- Show amount of finished games
+	friends
