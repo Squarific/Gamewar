@@ -118,9 +118,11 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 			var block = targetdiv.appendChild(style.currentStyle.blockText());
 			block.style.textAlign = "center";
 			errorDiv = block.appendChild(document.createElement("div"));
-			var playerList = block.appendChild(style.currentStyle.lobbyPlayerList(gameWar, data));
+			var playerList = block.appendChild(style.currentStyle.lobbyPlayerList(gameWar, data, (gameWar.userId === data.creatorId) ? this : undefined));
 			var settingList = block.appendChild(style.currentStyle.lobbySettingsList(data, this.settings));
 			settingList.innerHTML += this.description;
+			settingList.style.maxHeight = "500px";
+			settingList.style.overflowY = "auto";
 			var actionList = block.appendChild(style.currentStyle.lobbyBlock());
 			actionList.appendChild(document.createTextNode("Actions: "));
 			actionList.appendChild(document.createElement("br"));
@@ -271,6 +273,10 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 			}
 			return false;
 		}
+	};
+	
+	this.kickPlayer = function (playerId) {
+		gameWar.sendMessage(gameId, "kick", playerId);
 	};
 
 	if (typeof gameId === "number") {

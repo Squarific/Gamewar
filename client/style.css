@@ -152,6 +152,24 @@ body {
 	background:rgb(156, 127, 104);
 	cursor:default;
 }
+.default_kick_button {
+	display:inline-block;
+	margin-left:4px;
+	padding:5px;
+	padding-left:10px;
+	padding-right:10px;
+	background:rgb(189, 16, 16);
+	color:white;
+	transition-duration: .12s;
+	-webkit-transition-duration: .12s;
+	border-bottom:2px solid rgb(111, 0, 0);
+	cursor:pointer;
+}
+.default_kick_button:hover {
+	color:rgb(245, 234, 234);
+	background:rgb(158, 16, 16);
+	border-bottom:2px solid rgb(77, 0, 0);
+}
 .default_lobby_block {
 	text-align:left;
 	display:inline-block;

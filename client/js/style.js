@@ -86,7 +86,7 @@ var style = {
 			}
 			return list;
 		},
-		lobbyPlayerList: function (gameWar, gameData) {
+		lobbyPlayerList: function (gameWar, gameData, game) {
 			var playerlist = document.createElement("div");
 			playerlist.className = "default_lobby_block";
 			playerlist.appendChild(document.createTextNode("Players (" + gameData.players.length + "/" + gameData.maxPlayers + "):"));
@@ -101,10 +101,23 @@ var style = {
 					gameWar.callEvent("profile", event.target.playerId);
 				}));
 				button.playerId = gameData.players[key].id;
-				button.style.minWidth = "92%";
+				button.style.minWidth = "76%";
 				button.style.margin = "3px";
+				if (game) {
+					playerlist.appendChild(this.kickPlayerButton(game, gameData.players[key].id));
+				}
 			}
 			return playerlist
+		},
+		kickPlayerButton: function (game, playerId) {
+			var button = document.createElement("div");
+			button.addEventListener("click", function (event) {
+				game.kickPlayer(event.target.playerId);
+			});
+			button.playerId = playerId;
+			button.className = "default_kick_button";
+			button.appendChild(document.createTextNode("X"));
+			return button;
 		},
 		lobbySettingsList: function (gameData, settingList) {
 			var settingslist = document.createElement("div");

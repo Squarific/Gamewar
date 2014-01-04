@@ -9,6 +9,3 @@ GENERAL
 		- History in wallet hq
 		- Put funds in
 		- Withdrawal
-GAMES
-	Hearts
-		- Kick people*
