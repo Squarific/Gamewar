@@ -10,7 +10,7 @@ module.exports = {
 		hostname: "localhost",
 		username: "gamewar",
 		password: "gmpass45",
-		database: "gamewar" 
+		database: "gamewar"
 	},
 	games: {
 		"hearts": "Hearts (Black Lady)"

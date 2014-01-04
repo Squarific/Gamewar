@@ -62,9 +62,9 @@ module.exports = function Hearts (mysql, messages, settings) {
 	var gameListeners = {};
 	var helpers = {
 		createDatabase: function () {
-			mysql.query("DROP TABLE games_hearts_cards");
+			/*mysql.query("DROP TABLE games_hearts_cards");
 			mysql.query("DROP TABLE games_hearts_playerdata");
-			mysql.query("DROP TABLE games_hearts_gamedata");
+			mysql.query("DROP TABLE games_hearts_gamedata");*/
 			var query = "CREATE TABLE IF NOT EXISTS ";
 			query += "games_hearts_cards (";
 			query += "`gameid` bigint NOT NULL,";
@@ -603,6 +603,7 @@ module.exports = function Hearts (mysql, messages, settings) {
 							if (ended) {
 								//Game has ended
 								mysql.query("UPDATE games_lobby SET ended = 1 WHERE id = " + mysql.escape(gameId));
+								helpers.sendGameData(gameId);
 								console.log("GAMES: HEARTS: game: " + gameId + " has ended.");
 							} else {
 								helpers.startNewGameRound(gameId);

@@ -13,3 +13,8 @@ GENERAL
 	profile
 		- Show amount of finished games
 	friends
+GAMES:
+	Tic Tac Ten
+	Hearts
+		- When giving cards to self don't ask
+		- When all hearts and lady gone stop game
