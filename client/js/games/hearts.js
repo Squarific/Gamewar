@@ -161,7 +161,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 			
 			for (var key = 0; key < gamedata.players.length; key++) {
 				if (gamedata.players[key].points >= gamedata.endpoints) {
-					var lowest = 0,
+					var lowest = gamedata.players[key].points,
 						winners = [];
 					for (var key = 0; key < gamedata.players.length; key++) {
 						if (gamedata.players[key].points >= gamedata.endpoints) {
@@ -173,7 +173,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 							}
 						}
 					}
-					var block = targetdiv.appendChild(style.currentStyle.createTextBlock());
+					var block = targetdiv.appendChild(style.currentStyle.blockText());
 					block.appendChild(document.createTextNode("This game has been ended already. " + winners.join(" and ") + " won the game."));
 					return;
 				}

@@ -13,6 +13,7 @@ GENERAL
 	profile
 		- Show amount of finished games
 	friends
+	Make game making tutorial
 GAMES:
 	Tic Tac Ten
 	Hearts

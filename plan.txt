@@ -1,0 +1,12 @@
+First test (alpha) Sunday 04/01/2014
+	- One game: Hearts
+	- Lukas (probably short amount of time), Filip, one2xs
+	- Reddit (Subreddits: )
+	- Ask for feedback, check stabibility
+	- Keep it small (5-10 people)
+	- Use invites!
+
+Second test (alpha) Aprox 18/01/2014
+	- Two games: Hearts and Tic Tac Ten
+	- Test bitcoin functionality (let everyone message you, do not only rely on database, take backups!)
+	- Again ask for feedback
