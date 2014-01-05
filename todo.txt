@@ -14,6 +14,7 @@ GENERAL
 		- Show amount of finished games
 	friends
 	Make game making tutorial
+	Make a basic game structure
 GAMES:
 	Tic Tac Ten
 	Hearts
