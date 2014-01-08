@@ -19,14 +19,6 @@ function createConnection () {
 		user: settings.database.username,
 		password: settings.database.password
 	});
-	
-	mysql.on("error", function (err) {
-		if(err.code !== 'PROTOCOL_CONNECTION_LOST') {
-			console.log("Unhandled database error: " + err);
-		}
-		console.log("Database connection lost: reconnecting to the database.");
-		setTimeout(createConnection(), 1000);
-	});
 }
 
 createConnection();
