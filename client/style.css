@@ -52,6 +52,13 @@ body {
 .menu .link:hover {
 	background:rgb(158, 9, 9);
 }
+@media (max-width:450px) {
+	.menu .link {
+		width:100%;
+		padding-left:0px;
+		padding-right:0px;
+	}
+}
 .tabs {
 	border-bottom:solid 3px rgb(90, 90, 90);
 	-webkit-touch-callout: none;
