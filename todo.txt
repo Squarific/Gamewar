@@ -1,22 +1,32 @@
 GENERAL
 	tabs
-		- requestattention
+		- requestattention/flashing tabs (e.g. tabview.requestAttention(tab || page))
 		- sort
 		- close on ctrl+w
 	games
 		- Kill games after X amount of time
 		- Chat (?)
-	transactions
+		- request funds
+		- give money to winner(s)
+		- tutorial on how to make + basic game structure
+	transactions/wallet
 		- History in wallet hq
 		- Put funds in
 		- Withdrawal
+		- Authorize games
+		- Auto autherize certain games/all games
+		- Second password
+		- twofactor authentication
 	profile
 		- Show amount of finished games
 	friends
-	Make game making tutorial
-	Make a basic game structure
+		- message
+	safety
+		- twofactor authentication
+		- clientside encryption
 GAMES:
 	Tic Tac Ten
+	BattleShip
 	Hearts
 		- When giving cards to self don't ask
 		- When all hearts and lady gone stop game
