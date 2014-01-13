@@ -83,8 +83,23 @@ body {
 	background:rgb(90, 90, 90);
 	cursor:default;
 }
+.tabs .flashing {
+	-webkit-animation:flashing 1.5s infinite;
+}
+@-webkit-keyframes flashing {
+	0% {
+		background:rgb(121, 92, 41);
+	}
+	50% {
+		background:rgb(60, 60, 60);
+	}
+	100% {
+		background:rgb(121, 92, 41);
+	}
+}
 .tabs .link:hover {
 	background:rgb(104, 103, 103);
+	-webkit-animation:none;
 }
 .close {
 	display:inline-block;

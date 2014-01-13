@@ -1,13 +1,13 @@
 GENERAL
 	tabs
-		- requestattention/flashing tabs (e.g. tabview.requestAttention(tab || page))
-		- sort
+		- sort tabs
 		- close on ctrl+w
 	games
 		- Kill games after X amount of time
 		- Chat (?)
 		- request funds
 		- give money to winner(s)
+		- lobby system
 		- tutorial on how to make + basic game structure
 	transactions/wallet
 		- History in wallet hq
@@ -19,11 +19,19 @@ GENERAL
 		- twofactor authentication
 	profile
 		- Show amount of finished games
+		- friendbutton
+		- picture
 	friends
+		- add
 		- message
 	safety
 		- twofactor authentication
 		- clientside encryption
+	speed
+		- minimize jsfiles
+		- combine all general files
+	communication
+		- Unlisten listeners when closing tab (server)
 GAMES:
 	Tic Tac Ten
 	BattleShip

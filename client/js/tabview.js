@@ -61,6 +61,16 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 		}
 	};
 	
+	this.requestAttention = function (target) {
+		target = target.tab || target;
+		if (!target || !target.page || !target.parentNode) {
+			return;
+		}
+		if (!target.classList.contains("active")) {
+			target.classList.add("flashing");
+		}
+	};
+	
 	this.changeTitle = function (target, title) {
 		if (target.tab) {
 			target = target.tab;
@@ -101,6 +111,7 @@ var Tabview = function Tabview (tabcontainer, pagecontainer) {
 		tab.page.style.zIndex = 999;
 		tab.page.style.display = "";
 		tab.classList.add("active");
+		tab.classList.remove("flashing");
 		this.resize();
 	};
 	
