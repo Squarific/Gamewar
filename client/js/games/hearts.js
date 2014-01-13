@@ -212,7 +212,6 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 					}
 				}
 			}
-			console.log(passingTo);
 			
 			var greenplayer = passingTo.tableposition || helpers.whoHasToPlay(gamedata, tablecards);
 
@@ -239,8 +238,12 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 				var text = "These are your handcards.";
 				if (!gamedata.passedcards) {
 					text += " Click on the card that you want to pass to someone else. You are passing cards to " + passingTo.username + ".";
+					if  (passingcards.length < 3) {
+						tabview.requestAttention(targetdiv);
+					}
 				} else if (gameWar.userId === currentplayer.id) {
 					text += " Click on the card that you want to play.";
+					tabview.requestAttention(targetdiv);
 				}
 				var handcards = block.appendChild(gameStylers.cards(handcards, true, text, !gamedata.passedcards || gameWar.userId === currentplayer.id));
 			}
@@ -286,6 +289,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 		var listeners = {
 			gamelobby: function (data) {
 				helpers.showLobby(data);
+				tabview.requestAttention(targetdiv);
 			}.bind(this),
 			gamedata: function (data) {
 				helpers.drawTable(data);
@@ -299,6 +303,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 					}
 					errorDiv.appendChild(style.currentStyle.error(error));
 				}
+				tabview.requestAttention(targetdiv);
 			}
 		};
 		gameWar.addNetworkListeners(gameId, listeners);
