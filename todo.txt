@@ -21,17 +21,23 @@ GENERAL
 		- Show amount of finished games
 		- friendbutton
 		- picture
+		- small bio
 	friends
 		- add
 		- message
 	safety
 		- twofactor authentication
 		- clientside encryption
+		- require a verified email when funding account
+		- require a verified email when adding a bio
 	speed
 		- minimize jsfiles
 		- combine all general files
 	communication
 		- Unlisten listeners when closing tab (server)
+	backup
+		- Email every hour
+		- Save to file every 5 minutes
 GAMES:
 	Tic Tac Ten
 	BattleShip

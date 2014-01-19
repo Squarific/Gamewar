@@ -19,6 +19,7 @@ module.exports = {
 		cacheTime: 1500
 	},
 	backup: {
-		emails: ["alemaaltevinden@gmail.com"]
+		emails: ["alemaaltevinden@gmail.com"],
+		filename: "backups/gamewarDatabaseBackup"
 	}
 }

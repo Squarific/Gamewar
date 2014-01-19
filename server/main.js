@@ -5,10 +5,13 @@ console.log("====================================================");
 console.log("");
 
 var settings = require("./settings.js");
-var database = require("./database.js");
-var CryptoJS = require("./CryptoJSSha256.js");
-var Eventhandlers = require("./eventhandlers.js");
-var MessageManager = require("./messagemanager.js");
+var database = require("./libraries/database.js");
+var CryptoJS = require("./libraries/CryptoJSSha256.js");
+var Gamehandlers = require("./libraries/gamehandlers.js");
+var MessageManager = require("./libraries/messagemanager.js");
+var Userhandlers = require("./libraries/userhandlers.js");
+var Wallet = require("./libraries/wallet.js");
+var Backup = require("./libraries/backup.js");
 
 var mysqlManager = require("mysql");
 var mysql;
@@ -23,8 +26,11 @@ function createConnection () {
 
 createConnection();
 
-var eventhandlers = new Eventhandlers(mysql, CryptoJS, settings);
-var messages = new MessageManager(eventhandlers);
+var gamehandlers = new Gamehandlers(mysql, settings);
+var userhandlers = new Userhandlers(mysql, CryptoJS);
+var messages = new MessageManager(gamehandlers);
+var wallet = new Wallet(mysql);
+var backup = new Backup(mysql);
 var games = {};
 
 database.createDatabaseAndTables(mysql, settings.database);
@@ -43,12 +49,12 @@ io.sockets.on("connection", function (socket) {
 		}
 		if (!data || !data.username) {
 			if (!data || !socket.userdata || !socket.userdata.name) {
-				eventhandlers.newguest(socket, callback);
+				userhandlers.newguest(socket, callback);
 			} else {
 				callback({error: "Please provide the name of the account you want to login to."});
 			}
 		} else {
-			eventhandlers.login(socket, data.username, CryptoJS.SHA256(data.password), callback);
+			userhandlers.login(socket, data.username, CryptoJS.SHA256(data.password), callback);
 		}
 	});
 
@@ -56,7 +62,7 @@ io.sockets.on("connection", function (socket) {
 		if (typeof callback !== "function") {
 			callback = function () {};
 		}
-		eventhandlers.changeUserSettings(socket, data, callback);
+		userhandlers.changeUserSettings(socket, data, callback);
 	});
 	
 	socket.on("emaillist", function (data, callback) {
@@ -67,7 +73,7 @@ io.sockets.on("connection", function (socket) {
 			callback({error: "You can't ask for emails when not logged in."});
 			return;
 		}
-		eventhandlers.emails(socket.userdata.id, callback);
+		userhandlers.emails(socket.userdata.id, callback);
 	});
 	
 	socket.on("gamelist", function (data, callback) {
@@ -81,11 +87,11 @@ io.sockets.on("connection", function (socket) {
 		if (typeof callback !== "function") {
 			callback = function () {};
 		}
-		eventhandlers.newGame(socket, data, games, callback);
+		gamehandlers.newGame(socket, data, games, callback);
 	});
 	
 	socket.on("gamelobbylist", function (data, callback) {
-		eventhandlers.getOpenGames(callback);
+		gamehandlers.getOpenGames(callback);
 	});
 	
 	socket.on("activegameslist", function (data, callback) {
@@ -96,11 +102,11 @@ io.sockets.on("connection", function (socket) {
 			callback({error: "You can't ask for a list of your active games when not logged in."});
 			return;
 		}
-		eventhandlers.getActiveGames(socket.userdata.id, callback);
+		gamehandlers.getActiveGames(socket.userdata.id, callback);
 	});
 	
 	socket.on("gamename", function (data, callback ) {
-		eventhandlers.getGameName(data, callback);
+		gamehandlers.getGameName(data, callback);
 	});
 	
 	socket.on("gameMessage", function (data) {
