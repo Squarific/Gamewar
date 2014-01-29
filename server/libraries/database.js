@@ -31,6 +31,16 @@ module.exports = {
 		query += "PRIMARY KEY (id)";
 		query += ")";
 		target.query(query);
+		
+		var query = "CREATE TABLE IF NOT EXISTS ";
+		query += "transactions (";
+		query += "`id` BIGINT,";
+		query += "`userid` BIGINT,"
+		query += "`reason` TEXT,";
+		query += "`satoshi` BIGINT,";
+		query += "PRIMARY KEY (gameid, userid)";
+		query += ")";
+		mysql.query(query);
 
 		var query = "CREATE TABLE IF NOT EXISTS ";
 		query += "games_lobby (";

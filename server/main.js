@@ -32,7 +32,7 @@ var userhandlers = new Userhandlers(mysql, CryptoJS);
 var messages = new MessageManager(gamehandlers);
 var gameFunds = new GameFunds(mysql);
 var backup = new Backup(mysql);
-var blockchain = new Blockchain(settings.blockchain);
+var blockchain = new Blockchain(mysql, settings.blockchain);
 var games = {};
 
 database.createDatabaseAndTables(mysql, settings.database);

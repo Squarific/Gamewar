@@ -1,3 +1,3 @@
-module.exports = function Blockchain (settings) {
+module.exports = function Blockchain (mysql, settings) {
 	
 };

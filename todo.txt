@@ -27,7 +27,7 @@ GENERAL
 		- message
 	safety
 		- twofactor authentication
-		- clientside encryption
+		- clientside password encryption
 		- require a verified email when funding account
 		- require a verified email when adding a bio
 	speed
@@ -44,3 +44,4 @@ GAMES:
 	Hearts
 		- When giving cards to self don't ask
 		- When all hearts and lady gone stop game
+	Risk
