@@ -10,8 +10,9 @@ var CryptoJS = require("./libraries/CryptoJSSha256.js");
 var Gamehandlers = require("./libraries/gamehandlers.js");
 var MessageManager = require("./libraries/messagemanager.js");
 var Userhandlers = require("./libraries/userhandlers.js");
-var Wallet = require("./libraries/wallet.js");
+var GameFunds = require("./libraries/gamefunds.js");
 var Backup = require("./libraries/backup.js");
+var Blockchain = require("./libraries/blockchain.js");
 
 var mysqlManager = require("mysql");
 var mysql;
@@ -29,14 +30,15 @@ createConnection();
 var gamehandlers = new Gamehandlers(mysql, settings);
 var userhandlers = new Userhandlers(mysql, CryptoJS);
 var messages = new MessageManager(gamehandlers);
-var wallet = new Wallet(mysql);
+var gameFunds = new GameFunds(mysql);
 var backup = new Backup(mysql);
+var blockchain = new Blockchain(settings.blockchain);
 var games = {};
 
 database.createDatabaseAndTables(mysql, settings.database);
 
 for (var key in settings.games) {
-	games[key] = new (require("./games/" + key + ".js"))(mysql, messages, settings.gameSettings);
+	games[key] = new (require("./games/" + key + ".js"))(mysql, messages, settings.gameSettings, gameFunds);
 }
 console.log("All games loaded succesfully.");
 	

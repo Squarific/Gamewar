@@ -2,12 +2,14 @@ module.exports = {
 	createDatabaseAndTables: function (target, settings) {
 		target.query("CREATE DATABASE IF NOT EXISTS " + settings.database);
 		target.query("USE " + settings.database);
-		
-		/*target.query("DROP TABLE games_settings");
-		target.query("DROP TABLE games_players");
-		target.query("DROP TABLE games_lobby");
-		target.query("DROP TABLE users");
-		target.query("DROP TABLE emails");*/
+
+		if (settings.dropGeneralTables) {
+			target.query("DROP TABLE games_settings");
+			target.query("DROP TABLE games_players");
+			target.query("DROP TABLE games_lobby");
+			target.query("DROP TABLE users");
+			target.query("DROP TABLE emails");
+		}
 
 		var query = "CREATE TABLE IF NOT EXISTS ";
 		query += "users (";
