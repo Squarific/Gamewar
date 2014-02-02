@@ -1,4 +1,4 @@
-module.exports = function MessageManager (eventhandlers) {
+module.exports = function GameMessageManager (eventhandlers) {
 	var gameCallbacks = {};
 	this.register = function (game, callbacks) {
 		gameCallbacks[game] = callbacks;

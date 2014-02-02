@@ -1,14 +1,14 @@
 module.exports = {
-	createDatabaseAndTables: function (target, settings) {
-		target.query("CREATE DATABASE IF NOT EXISTS " + settings.database);
-		target.query("USE " + settings.database);
+	createDatabaseAndTables: function (mysql, settings) {
+		mysql.query("CREATE DATABASE IF NOT EXISTS " + settings.database);
+		mysql.query("USE " + settings.database);
 
 		if (settings.dropGeneralTables) {
-			target.query("DROP TABLE games_settings");
-			target.query("DROP TABLE games_players");
-			target.query("DROP TABLE games_lobby");
-			target.query("DROP TABLE users");
-			target.query("DROP TABLE emails");
+			mysql.query("DROP TABLE IF EXISTS games_settings");
+			mysql.query("DROP TABLE IF EXISTS games_players");
+			mysql.query("DROP TABLE IF EXISTS games_lobby");
+			mysql.query("DROP TABLE IF EXISTS users");
+			mysql.query("DROP TABLE IF EXISTS emails");
 		}
 
 		var query = "CREATE TABLE IF NOT EXISTS ";
@@ -21,7 +21,7 @@ module.exports = {
 		query += "PRIMARY KEY (ID),";
 		query += "UNIQUE (username)";
 		query += ")";
-		target.query(query);
+		mysql.query(query);
 		
 		var query = "CREATE TABLE IF NOT EXISTS ";
 		query += "emails (";
@@ -30,7 +30,7 @@ module.exports = {
 		query += "`email` text,";
 		query += "PRIMARY KEY (id)";
 		query += ")";
-		target.query(query);
+		mysql.query(query);
 		
 		var query = "CREATE TABLE IF NOT EXISTS ";
 		query += "transactions (";
@@ -38,7 +38,7 @@ module.exports = {
 		query += "`userid` BIGINT,"
 		query += "`reason` TEXT,";
 		query += "`satoshi` BIGINT,";
-		query += "PRIMARY KEY (gameid, userid)";
+		query += "PRIMARY KEY (userid)";
 		query += ")";
 		mysql.query(query);
 
@@ -52,7 +52,7 @@ module.exports = {
 		query += "`betamount` bigint,";
 		query += "PRIMARY KEY (id)";
 		query += ")";
-		target.query(query);
+		mysql.query(query);
 
 		var query = "CREATE TABLE IF NOT EXISTS ";
 		query += "games_settings (";
@@ -63,7 +63,7 @@ module.exports = {
 		query += "FOREIGN KEY (gameid)";
         query += "REFERENCES games_lobby(id)";
 		query += ")";
-		target.query(query);
+		mysql.query(query);
 
 		var query = "CREATE TABLE IF NOT EXISTS ";
 		query += "games_players (";
@@ -75,7 +75,7 @@ module.exports = {
         query += "FOREIGN KEY (playerid)";
         query += "REFERENCES users(id)";
 		query += ")";
-		target.query(query, function (err) {
+		mysql.query(query, function (err) {
 			if (!err) {
 				console.log("Connected to databse, created database and created tables.");
 			}

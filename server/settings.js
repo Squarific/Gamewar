@@ -11,7 +11,8 @@ module.exports = {
 		username: "gamewar",
 		password: "gmpass45",
 		database: "gamewar",
-		dropGeneralTables: true
+		dropGeneralTables: true,
+		dropGameFundsTable: true
 	},
 	games: {
 		"hearts": "Hearts (Black Lady)"
@@ -26,7 +27,7 @@ module.exports = {
 		fileTime: 3 * 60 * 1000
 	},
 	blockchain: {
-		guid: ,
+		guid: "",
 		main_password: "YGLKdQXgm6XvQ2AbLkzSssoCyyEC2ck9k4IuIdpt",
 		second_password: "ZAnFYYiQ7rYqUzJNKGzY9uDkQDVtIMAXPyoQGsDz"
 	}

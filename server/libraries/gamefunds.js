@@ -1,4 +1,7 @@
-module.exports = function GameFunds (mysql) {
+module.exports = function GameFunds (mysql, settings) {
+	if (settings.database.dropGameFundsTable) {
+		mysql.query("DROP TABLE IF EXISTS gamefunds");
+	}
 	var query = "CREATE TABLE IF NOT EXISTS ";
 		query += "gamefunds (";
 		query += "`gameid` BIGINT,";
