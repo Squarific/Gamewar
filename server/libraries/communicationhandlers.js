@@ -1,4 +1,4 @@
-module.exports = function Communicationhandlers (settings, handlers, gamemessages) {
+module.exports = function Communicationhandlers (settings, handlers, gamemessages, gameFunds, CryptoJS) {
 	var io = require("socket.io").listen(settings.server.port);
 	io.set('log level', 1);
 	io.sockets.on("connection", function (socket) {
@@ -73,7 +73,24 @@ module.exports = function Communicationhandlers (settings, handlers, gamemessage
 		});
 		
 		socket.on("wallet", function (data, callback) {
-			
+			if (typeof callback !== "function") {
+				callback = function () {};
+			}
+			if (!socket.userdata || typeof socket.userdata.id !== "number") {
+				callback({error: "You can't ask for your wallet information when not logged in."});
+				return;
+			}
+			gameFunds.getFundsOfUserId(socket.userdata.id, function (gameFunds) {
+				handlers.userhandlers.getSatoshiOfUserId(socket.userdata.id, function (satoshi) {
+					handlers.userhandlers.getTransactionsOfUserId(socket.userdata.id, function (transactions) {
+						callback({
+							gameFunds: gameFunds,
+							transactions: transactions,
+							satoshi: satoshi
+						});
+					});
+				});
+			});
 		});
 	});
 	

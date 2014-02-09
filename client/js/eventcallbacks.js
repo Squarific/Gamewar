@@ -33,6 +33,12 @@ gameWar.addEventListener("wallethq", function () {
 	var pagediv = tabview.open("wallethq");
 	var block = pagediv.appendChild(style.currentStyle.blockText());
 	block.appendChild(document.createTextNode("Your wallet status"));
+	network.emit("wallet", undefined, function (data) {
+		console.log(data);
+		block.appendChild(style.currentStyle.walletTable(data.satoshi));
+		//block.appendChild(style.currentStyle.gameFundTable(data.gameFunds));
+		//block.appendChild(style.currentStyle.transactionsTable(data.transactions));
+	});
 });
 
 gameWar.addEventListener("activegames", function () {

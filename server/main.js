@@ -30,7 +30,7 @@ var gamemessages = new GameMessageManager(handlers.gamehandlers);
 var gameFunds = new GameFunds(mysql, settings);
 var backup = new Backup(mysql);
 var blockchain = new Blockchain(mysql, settings.blockchain);
-var communicationhandlers = new Communicationhandlers(settings, handlers, gamemessages);
+var communicationhandlers = new Communicationhandlers(settings, handlers, gamemessages, gameFunds, CryptoJS);
 var games = {};
 
 for (var key in settings.games) {

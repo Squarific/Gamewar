@@ -11,7 +11,7 @@ module.exports = function GameFunds (mysql, settings) {
 		query += "PRIMARY KEY (gameid, userid)";
 		query += ")";
 	mysql.query(query);
-	
+
 	this.getFundsOfUserId = function (userid, callback) {
 		mysql.query("SELECT gameid, paid, satoshi FROM gamefunds WHERE userid = " + mysql.escape(userid), function (err, rows, fields) {
 			if (err) {

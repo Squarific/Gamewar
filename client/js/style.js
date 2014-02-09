@@ -139,6 +139,31 @@ var style = {
 			block.className = "default_lobby_block";
 			return block;
 		},
+		walletTable: function (satoshi) {
+			var table = document.createElement("table");
+			table.classList.add("default_wallettable");
+			var denominations = {
+				BTC: 1e8,
+				mBTC: 1e6,
+				satoshi: 1
+			};
+			for (var denomination in denominations) {
+				var row = table.insertRow(-1);
+				var denominationcell = row.insertCell(-1);
+				denominationcell.appendChild(document.createTextNode(denomination));
+				denominationcell.classList.add("default_denominationcell");
+				var valuecell = row.insertCell(-1);
+				valuecell.appendChild(document.createTextNode(satoshi / denominations[denomination]));
+				valuecell.classList.add("default_valuecell");
+			}
+			return table;
+		},
+		gameFundTable: function (gameFunds) {
+			
+		},
+		transactionsTable: function (transactions) {
+			
+		},
 		error: function (error) {
 			var errorDiv = document.createElement("div");
 			errorDiv.appendChild(document.createTextNode(error));

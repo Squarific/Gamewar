@@ -126,6 +126,27 @@ module.exports = function userhandlers (mysql, CryptoJS) {
 		}
 	};
 	
+	this.getSatoshiOfUserId = function (id, callback) {
+		mysql.query("SELECT satoshi FROM users WHERE id = " + mysql.escape(id), function (err, rows, fields) {
+			if (err) {
+				console.log("SATOSHIOFUSERID DATABASE ERROR: ", err);
+				return;
+			}
+			callback(rows[0].satoshi);
+		});
+	};
+	
+	this.getTransactionsOfUserId = function (id, callback) {
+		mysql.query("SELECT reason, `datetime`, satoshi FROM transactions WHERE userid = " + mysql.escape(id), function (err, rows, fields) {
+			if (err) {
+				console.log(fields);
+				console.log("GETTRANSACTIONSOFUSERID DATABASE ERROR: ", err);
+				return;
+			}
+			callback(rows);
+		});
+	};
+	
 	this.emails = function (id, callback) {
 		if (typeof callback !== "function") {
 			console.log("Can't get emails: no callback provided.");

@@ -210,3 +210,12 @@ body {
 	padding:5px;
 	margin:5px;
 }
+.default_wallettable {
+	margin-top:20px;
+}
+.default_denominationcell {
+	padding-right:150px;
+}
+.default_valuecell {
+	text-align:right;
+}

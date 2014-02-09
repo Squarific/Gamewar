@@ -8,6 +8,7 @@ module.exports = {
 			mysql.query("DROP TABLE IF EXISTS games_players");
 			mysql.query("DROP TABLE IF EXISTS games_lobby");
 			mysql.query("DROP TABLE IF EXISTS users");
+			mysql.query("DROP TABLE IF EXISTS transactions");
 			mysql.query("DROP TABLE IF EXISTS emails");
 		}
 
@@ -17,7 +18,7 @@ module.exports = {
 		query += "`username` varchar(32) UNIQUE,";
 		query += "`password` varchar(255),";
 		query += "`guest` int DEFAULT 1,";
-		query += "`satoshi` INT DEFAULT 0,";
+		query += "`satoshi` bigint DEFAULT 5000,";
 		query += "PRIMARY KEY (ID),";
 		query += "UNIQUE (username)";
 		query += ")";
@@ -37,6 +38,7 @@ module.exports = {
 		query += "`id` BIGINT,";
 		query += "`userid` BIGINT,"
 		query += "`reason` TEXT,";
+		query += "`datetime` DATETIME DEFAULT NOW(),";
 		query += "`satoshi` BIGINT,";
 		query += "PRIMARY KEY (userid)";
 		query += ")";
