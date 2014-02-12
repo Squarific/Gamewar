@@ -1,4 +1,4 @@
-module.exports = function Hearts (mysql, messages, settings) {
+module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 	settings = settings || {};
 	settings.cachetime = settings.cachetime || 1500;
 	this.name = "Hearts (black lady)";
@@ -647,17 +647,46 @@ module.exports = function Hearts (mysql, messages, settings) {
 						messages.emit(socket, gameId, "error", "You can't start this game cause you didn't create it.");
 						return;
 					}
-					mysql.query("INSERT INTO games_hearts_gamedata (gameid) VALUES (" + mysql.escape(gameId) + ")", function (err, rows, fields) {
-						if (err) {
-							console.log("ERROR INSERTING gamid in games_hearts_gamedata ERR: " + err);
+					if (gameData.players.length !== gameData.maxPlayers) {
+						messages.emit(socket, gameId, "error", "This game can't be started yet because there need to be " + gameData.maxPlayers + " players.");
+						return;
+					}
+					gameFunds.checkStatus(gameId, function (list) {
+						if (list.length !== gameData.maxPlayers) {
+							var values = [];
+							for (var key in gameData.settings) {
+								console.log(key);
+							}
+							return;
+							for (var key = 0; key < gameData.players.length; key++) {
+								values.push({
+									userid: gameData.players[key],
+									satoshi: amount
+								});
+							}
+							gameFunds.requestGameFunds(gameId, values);
+							messages.emit(socket, gameId, "success", "Gamefunds have been requested. Every player has to accept the request for bitcoins, unless you are playing for 0 bitcoins, in that case you can just press start again.");
+						} else {
+							for (var key = 0; key < list.length; key++) {
+								if (!list[key].paid) {
+									messages.emit(socket, gameId, "error", "This game can't be started yet, user " + list[key].userid + " still has to autherize hes funds.");
+									return;
+								}
+							}
+							mysql.query("INSERT INTO games_hearts_gamedata (gameid) VALUES (" + mysql.escape(gameId) + ")", function (err, rows, fields) {
+								if (err) {
+									console.log("ERROR INSERTING gamid in games_hearts_gamedata ERR: " + err);
+								}
+							});
+							var query = [];
+							for (var key = 0; key < gameData.players.length; key++) {
+								query.push("(" + mysql.escape(gameId) + "," + mysql.escape(gameData.players[key].id) + "," + mysql.escape(key + 1) + ")");
+							}
+							mysql.query("INSERT INTO games_hearts_playerdata (gameid, playerid, tableposition) VALUES " + query.join(", "));
+							helpers.startNewGameRound(gameId);
 						}
 					});
-					var query = [];
-					for (var key = 0; key < gameData.players.length; key++) {
-						query.push("(" + mysql.escape(gameId) + "," + mysql.escape(gameData.players[key].id) + "," + mysql.escape(key + 1) + ")");
-					}
-					mysql.query("INSERT INTO games_hearts_playerdata (gameid, playerid, tableposition) VALUES " + query.join(", "));
-					helpers.startNewGameRound(gameId);
+					
 				});
 			});
 		},
