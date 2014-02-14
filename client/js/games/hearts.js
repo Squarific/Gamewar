@@ -46,7 +46,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 	};
 
 	var lastGameData = {};
-	var errorDiv;
+	var errorDiv, successDiv;
 
 	var gameStylers = {
 		table: function (players, green) {
@@ -118,6 +118,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 			var block = targetdiv.appendChild(style.currentStyle.blockText());
 			block.style.textAlign = "center";
 			errorDiv = block.appendChild(document.createElement("div"));
+			successDiv = block.appendChild(document.createElement("div"));
 			var playerList = block.appendChild(style.currentStyle.lobbyPlayerList(gameWar, data, (gameWar.userId === data.creatorId) ? this : undefined));
 			var settingList = block.appendChild(style.currentStyle.lobbySettingsList(data, this.settings));
 			settingList.innerHTML += this.description;
@@ -217,6 +218,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 
 			var block = targetdiv.appendChild(style.currentStyle.blockText());
 			errorDiv = block.appendChild(document.createElement("div"));
+			successDiv = block.appendChild(document.createElement("div"));
 			var table = block.appendChild(gameStylers.table(gamedata.players, greenplayer));
 
 			for (var key = 0; key < gamedata.players.length; key++) {
@@ -302,6 +304,15 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 						errorDiv.removeChild(errorDiv.firstChild);
 					}
 					errorDiv.appendChild(style.currentStyle.error(error));
+				}
+				tabview.requestAttention(targetdiv);
+			},
+			success: function (success) {
+				if (successDiv) {
+					while (successDiv.firstChild) {
+						successDiv.removeChild(successDiv.firstChild);
+					}
+					successDiv.appendChild(style.currentStyle.success(success));
 				}
 				tabview.requestAttention(targetdiv);
 			}

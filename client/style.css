@@ -210,6 +210,13 @@ body {
 	padding:5px;
 	margin:5px;
 }
+.default_success_message {
+	background:rgb(88, 143, 29);
+	font-weight:800;
+	color:white;
+	padding:5px;
+	margin:5px;
+}
 .default_wallettable {
 	margin-top:20px;
 }

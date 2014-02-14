@@ -1,4 +1,4 @@
-module.exports = function Communicationhandlers (settings, handlers, gamemessages, gameFunds, CryptoJS) {
+module.exports = function Communicationhandlers (settings, handlers, gamemessages, gameFunds, games, CryptoJS) {
 	var io = require("socket.io").listen(settings.server.port);
 	io.set('log level', 1);
 	io.sockets.on("connection", function (socket) {

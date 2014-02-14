@@ -62,9 +62,11 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 	var gameListeners = {};
 	var helpers = {
 		createDatabase: function () {
-			/*mysql.query("DROP TABLE games_hearts_cards");
-			mysql.query("DROP TABLE games_hearts_playerdata");
-			mysql.query("DROP TABLE games_hearts_gamedata");*/
+			if (settings.dropTables) {
+				mysql.query("DROP TABLE games_hearts_cards");
+				mysql.query("DROP TABLE games_hearts_playerdata");
+				mysql.query("DROP TABLE games_hearts_gamedata");
+			}
 			var query = "CREATE TABLE IF NOT EXISTS ";
 			query += "games_hearts_cards (";
 			query += "`gameid` bigint NOT NULL,";
@@ -651,21 +653,35 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 						messages.emit(socket, gameId, "error", "This game can't be started yet because there need to be " + gameData.maxPlayers + " players.");
 						return;
 					}
-					gameFunds.checkStatus(gameId, function (list) {
-						if (list.length !== gameData.maxPlayers) {
-							var values = [];
-							for (var key in gameData.settings) {
-								console.log(key);
-							}
+					gameFunds.checkStatus(gameId, function (err, list) {
+						if (err) {
+							messages.emit(socket, gameId, "error", "Couldn't check the gamefunds status thus couldn't start the game. Try again later.");
 							return;
+						}
+						if (list.length !== gameData.maxPlayers) {
+							var values = [],
+								amount = 0;
+							for (var key in gameData.settings) {
+								if (key === 'betAmount') {
+									amount = gameData.settings[key];
+								}
+							}
 							for (var key = 0; key < gameData.players.length; key++) {
 								values.push({
-									userid: gameData.players[key],
+									userid: gameData.players[key].id,
 									satoshi: amount
 								});
 							}
-							gameFunds.requestGameFunds(gameId, values);
-							messages.emit(socket, gameId, "success", "Gamefunds have been requested. Every player has to accept the request for bitcoins, unless you are playing for 0 bitcoins, in that case you can just press start again.");
+							gameFunds.requestGameFunds(gameId, values, function (err) {
+								if (err) {
+									messages.emit(socket, gameId, "error", "Requesting gamefunds failed. Please try again later, if the error persists, contact support.");
+									return;
+								}
+								messages.emit(socket, gameId, "success", "Gamefunds have been requested.");
+								if (amount === 0) {
+									listeners.start(socket, gameId, data);
+								}
+							});
 						} else {
 							for (var key = 0; key < list.length; key++) {
 								if (!list[key].paid) {

@@ -1,5 +1,5 @@
 module.exports = {
-	createDatabaseAndTables: function (mysql, settings) {
+	createDatabaseAndTables: function (mysql, settings, callback) {
 		mysql.query("CREATE DATABASE IF NOT EXISTS " + settings.database);
 		mysql.query("USE " + settings.database);
 
@@ -18,7 +18,7 @@ module.exports = {
 		query += "`username` varchar(32) UNIQUE,";
 		query += "`password` varchar(255),";
 		query += "`guest` int DEFAULT 1,";
-		query += "`satoshi` bigint DEFAULT 5000,";
+		query += "`satoshi` bigint DEFAULT 100,";
 		query += "PRIMARY KEY (ID),";
 		query += "UNIQUE (username)";
 		query += ")";
@@ -78,8 +78,12 @@ module.exports = {
         query += "REFERENCES users(id)";
 		query += ")";
 		mysql.query(query, function (err) {
+			if (err) {
+				console.log("DATABASE ERROR", err);
+			}
 			if (!err) {
 				console.log("Connected to databse, created database and created tables.");
+				callback();
 			}
 		});
 	}

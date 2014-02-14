@@ -11,7 +11,7 @@ module.exports = function userhandlers (mysql, CryptoJS) {
 			}
 			if (rows.length < 1) {
 				callback({error: "No user with this name and password is registered."});
-				console.log("Someone tried logging in with name: " + name + " and pass: " + pass);
+				console.log("Someone tried logging in with name: " + name + " and pass: " + pass + " but failed.");
 			} else {
 				socket.userdata = socket.userdata || {};
 				socket.userdata.id = rows[0].id;
@@ -37,7 +37,7 @@ module.exports = function userhandlers (mysql, CryptoJS) {
 				console.log(err);
 				return;
 			}
-			console.log("New guest account: " + name + " with ID: " + result.insertId);
+			console.log("New guest account created, name: " + name + " with ID: " + result.insertId);
 			callback({success: "Logged in as " + name});
 			socket.userdata = socket.userdata || {};
 			socket.userdata.id = result.insertId;

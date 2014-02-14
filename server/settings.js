@@ -18,7 +18,8 @@ module.exports = {
 		"hearts": "Hearts (Black Lady)"
 	},
 	gameSettings: {
-		cacheTime: 1500
+		cacheTime: 1500,
+		dropTables: true
 	},
 	backup: {
 		emails: ["alemaaltevinden@gmail.com"],

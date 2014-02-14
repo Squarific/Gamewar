@@ -17,23 +17,30 @@ var Blockchain = require("./libraries/blockchain.js");
 
 var mysqlManager = require("mysql");
 var mysql = mysqlManager.createConnection({
-		host: settings.database.hostname,
-		user: settings.database.username,
-		password: settings.database.password
-	});
-database.createDatabaseAndTables(mysql, settings.database);
+	host: settings.database.hostname,
+	user: settings.database.username,
+	password: settings.database.password
+});
+mysql.on("error", function (err) {
+	console.log("<UNHANDELD DATABASE ERROR>", err);
+	throw "</UNHANDELD DATABASE ERROR>";
+});
 
-var handlers = {};
-handlers.gamehandlers = new Gamehandlers(mysql, settings);
-handlers.userhandlers = new Userhandlers(mysql, CryptoJS);
-var gamemessages = new GameMessageManager(handlers.gamehandlers);
-var gameFunds = new GameFunds(mysql, settings);
-var backup = new Backup(mysql);
-var blockchain = new Blockchain(mysql, settings.blockchain);
-var communicationhandlers = new Communicationhandlers(settings, handlers, gamemessages, gameFunds, CryptoJS);
-var games = {};
+var handlers = {}, games = {},
+	gamemessages, gameFunds, backup, blockchain, communicationhandlers;
 
-for (var key in settings.games) {
-	games[key] = new (require("./games/" + key + ".js"))(mysql, gamemessages, settings.gameSettings, gameFunds);
-}
-console.log("All games loaded succesfully.");
+database.createDatabaseAndTables(mysql, settings.database, function () {
+	handlers.gamehandlers = new Gamehandlers(mysql, settings);
+	handlers.userhandlers = new Userhandlers(mysql, CryptoJS);
+	gamemessages = new GameMessageManager(handlers.gamehandlers);
+	
+	gameFunds = new GameFunds(mysql, settings);
+	backup = new Backup(mysql);
+	blockchain = new Blockchain(mysql, settings.blockchain);
+	communicationhandlers = new Communicationhandlers(settings, handlers, gamemessages, gameFunds, games, CryptoJS);
+
+	for (var key in settings.games) {
+		games[key] = new (require("./games/" + key + ".js"))(mysql, gamemessages, settings.gameSettings, gameFunds);
+	}
+	console.log("All games loaded succesfully.");
+});

@@ -169,6 +169,12 @@ var style = {
 			errorDiv.appendChild(document.createTextNode(error));
 			errorDiv.className = "default_error_message";
 			return errorDiv;
+		},
+		success: function (success) {
+			var successDiv = document.createElement("div");
+			successDiv.appendChild(document.createTextNode(success));
+			successDiv.className = "default_success_message";
+			return successDiv;
 		}
 	}
 };

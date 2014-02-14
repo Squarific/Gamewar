@@ -382,10 +382,12 @@ network.on("password", function (pass) {
 });
 
 network.on("connect", function () {
+	console.log("Connected to the server, logging in using localStorage data.");
 	network.emit("login", {
 		username: localStorage.getItem("gamewar.username"),
 		password: localStorage.getItem("gamewar.password")
 	}, function (response) {
+		console.log("Loginresponse: " + response);
 		if (response.error) {
 			network.emit("login");
 		}
