@@ -6,7 +6,6 @@ GENERAL
 		- Kill games after X amount of time
 		- chat
 		- tutorial on how to make + basic game structure
-		- normalize listeners
 	transactions/wallet
 		- Put funds in
 		- Withdrawal
@@ -41,4 +40,5 @@ GAMES:
 		- When all hearts and lady gone stop game
 		- Check client side if valid move
 		- Deny joining games if can't pay betamount (check open gamefunds)
+		- use normalized listeners
 	Risk

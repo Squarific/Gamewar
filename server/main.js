@@ -14,6 +14,7 @@ var Userhandlers = require("./libraries/userhandlers.js");
 var GameFunds = require("./libraries/gamefunds.js");
 var Backup = require("./libraries/backup.js");
 var Blockchain = require("./libraries/blockchain.js");
+var Listeners = require("./libraries/listeners.js");
 
 var mysqlManager = require("mysql");
 var mysql = mysqlManager.createConnection({
@@ -40,7 +41,7 @@ database.createDatabaseAndTables(mysql, settings.database, function () {
 	communicationhandlers = new Communicationhandlers(settings, handlers, gamemessages, gameFunds, games, CryptoJS);
 
 	for (var key in settings.games) {
-		games[key] = new (require("./games/" + key + ".js"))(mysql, gamemessages, settings.gameSettings, gameFunds);
+		games[key] = new (require("./games/" + key + ".js"))(mysql, gamemessages, settings.gameSettings, gameFunds, Listeners);
 	}
 	console.log("All games loaded succesfully.");
 });
