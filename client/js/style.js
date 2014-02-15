@@ -187,7 +187,7 @@ var style = {
 		gameFundRow: function (tableRow, gameFund, actionCallback) {
 			tableRow.insertCell(-1).appendChild(document.createTextNode("Game #" + gameFund["gameid"]));
 			var paid = tableRow.insertCell(-1);
-			paid.appendChild(document.createTextNode(gameFund["paid"] ? "AUTHORIZED and PAID" : "REQUESTED"));
+			paid.appendChild(document.createTextNode(gameFund["paid"] === 1 ? "AUTHORIZED and PAID" : (gameFund["paid"] === 2) "GIVEN TO WINNER" : "REQUESTED"));
 			paid.classList.add(gameFund["paid"] ? "paid" : "requested");
 			var amount = tableRow.insertCell(-1);
 			amount.appendChild(document.createTextNode(gameFund["satoshi"]));

@@ -24,7 +24,7 @@ module.exports = function GameFunds (mysql, settings) {
 	};
 	
 	this.giveFundsToWinners = function (gameid, values) {
-		if (!values.length) {
+		if (!values || !values.length) {
 			console.log("GIVEFUNDSTOWINNERS ERROR: wrong value count", values, !values.length);
 			return;
 		}
