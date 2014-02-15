@@ -1,4 +1,4 @@
-module.exports = function Hearts (mysql, messages, settings, gameFunds) {
+module.exports = function Hearts (mysql, messages, settings, gameFunds, Listeners) {
 	settings = settings || {};
 	settings.cachetime = settings.cachetime || 1500;
 	this.name = "Hearts (black lady)";
@@ -143,7 +143,6 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 			});
 		},
 		sendGameData: function (gameId, socket) {
-			gameListeners[gameId] = gameListeners[gameId] || [];
 			mysql.query("SELECT cardtype, position FROM games_hearts_cards WHERE gameid = " + mysql.escape(gameId), function (err, cards, fields) {
 				if (err) {
 					console.log("SENDGAMEDATA DATABASE ERROR GET CARDS: " + err);
@@ -171,9 +170,9 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 						if (socket) {
 							messages.emit(socket, gameId, "gamedata", helpers.prepareGameData(socket.userdata.id, gamedata[0], players, cards));
 						} else {
-							for (var key = 0; key < gameListeners[gameId].length; key++) {
-								messages.emit(gameListeners[gameId][key], gameId, "gamedata", helpers.prepareGameData(gameListeners[gameId][key].userdata.id, gamedata[0], players, cards));
-							}
+							listenersManager.callGameListenersPrepared(gameId, "gamedata", function (socket) {
+								return helpers.prepareGameData(socket.userdata.id, gamedata[0], players, cards);
+							});
 						}
 					});
 				});
@@ -729,45 +728,51 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 					messages.emit(socket, gameId, "error", "You can't leave this game because it has already been started.");
 					return;
 				}
-				for (var key = 0; key < gameData.players.length; key++) {
-					if (gameData.players[key].id === socket.userdata.id) {
-						function updateLobby (err) {
-							if (err) {
-								messages.emit(socket, gameId, "error", "There was an error removing you form this game. Err: " + err + "");
-								return;
-							}
-							helpers.getGameLobbyData(gameId, function (gameData) {
-								listenersManager.callGameListeners(gameId, "gamelobby", gameData);
-							}, true);
-						}
-						if (socket.userdata.id === gameData.creatorId) {
-							if (gameData.players.length > 1) {
-								gameData.players.splice(key, 1);
-								mysql.query("UPDATE games_lobby SET creatorid = " + mysql.escape(gameData.players[0].id) + " WHERE id = " + mysql.escape(gameId), function (err, rows, fields) {
-									if (err) {
-										messages.emit(socket, gameId, "error", "There was an error assigning someone else as creator. Err: " + err + "");
-										console.log("DATABASE ERROR ASSIGNING CREATOR: " + err);
-										return;
-									}
-									helpers.removePlayer(gameId, socket.userdata.id, updateLobby);
-								});
-							} else {
-								mysql.query("UPDATE games_lobby SET ended = 1 WHERE id = " + mysql.escape(gameId), function (err, rows, fields) {
-									if (err) {
-										messages.emit(socket, gameId, "error", "There was an error assigning someone else as creator. Err: " + err + "");
-										console.log("DATABASE ERROR ENDING EMPTY GAME: " + err);
-										return;
-									}
-									helpers.removePlayer(gameId, socket.userdata.id, updateLobby);
-								});
-							}
-						} else {
-							helpers.removePlayer(gameId, socket.userdata.id, updateLobby);
-						}
+				gameFunds.checkStatus(gameId, function (err, list) {
+					if (list.length === gameData.maxPlayers) {
+						messages.emit(socket, gameId, "error", "You can't leave because gamefunds have already been requested.");
 						return;
 					}
-				}
-				messages.emit(socket, gameId, "error", "You can't leave a game that you aren't in.");
+					for (var key = 0; key < gameData.players.length; key++) {
+						if (gameData.players[key].id === socket.userdata.id) {
+							function updateLobby (err) {
+								if (err) {
+									messages.emit(socket, gameId, "error", "There was an error removing you form this game. Err: " + err + "");
+									return;
+								}
+								helpers.getGameLobbyData(gameId, function (gameData) {
+									listenersManager.callGameListeners(gameId, "gamelobby", gameData);
+								}, true);
+							}
+							if (socket.userdata.id === gameData.creatorId) {
+								if (gameData.players.length > 1) {
+									gameData.players.splice(key, 1);
+									mysql.query("UPDATE games_lobby SET creatorid = " + mysql.escape(gameData.players[0].id) + " WHERE id = " + mysql.escape(gameId), function (err, rows, fields) {
+										if (err) {
+											messages.emit(socket, gameId, "error", "There was an error assigning someone else as creator. Err: " + err + "");
+											console.log("DATABASE ERROR ASSIGNING CREATOR: " + err);
+											return;
+										}
+										helpers.removePlayer(gameId, socket.userdata.id, updateLobby);
+									});
+								} else {
+									mysql.query("UPDATE games_lobby SET ended = 1 WHERE id = " + mysql.escape(gameId), function (err, rows, fields) {
+										if (err) {
+											messages.emit(socket, gameId, "error", "There was an error assigning someone else as creator. Err: " + err + "");
+											console.log("DATABASE ERROR ENDING EMPTY GAME: " + err);
+											return;
+										}
+										helpers.removePlayer(gameId, socket.userdata.id, updateLobby);
+									});
+								}
+							} else {
+								helpers.removePlayer(gameId, socket.userdata.id, updateLobby);
+							}
+							return;
+						}
+					}
+					messages.emit(socket, gameId, "error", "You can't leave a game that you aren't in.");
+				});
 			});
 		}.bind(this),
 		card: function (socket, gameId, cardtype) {

@@ -23,4 +23,11 @@ module.exports = function GameListeners (messages) {
 			messages.emit(gameListeners[gameId][key], gameId, event, data);
 		}
 	};
+	
+	this.callGameListenersPrepared = function (gameId, event, prepareData) {
+		gameListeners[gameId] = gameListeners[gameId] || {};
+		for (var key = 0; key < gameListeners[gameId].length; key++) {
+			messages.emit(gameListeners[gameId][key], gameId, event, prepareData(gameListeners[gameId][key]));
+		}
+	};
 };

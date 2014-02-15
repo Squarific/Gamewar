@@ -38,11 +38,11 @@ module.exports = function GameFunds (mysql, settings) {
 				return;
 			}
 			for (var key = 0; key < values.length; key++) {
-				transactionValues.push("(" + mysql.escape(values[key].id) + ", 'Earnings from winning game #" + gameid + "', " + rows[0].satoshi * values[key].amount + ")");
+				transactionValues.push("(" + mysql.escape(values[key].id) + ", 'Earnings from winning game #" + gameid + "', NOW(), " + rows[0].satoshi * values[key].amount + ")");
 				userIds.push(values[key].id);
 				userUpdateWhens += "WHEN " + values[key].id + " THEN FLOOR((SELECT SUM(satoshi) FROM gamefunds WHERE gameid = " + mysql.escape(gameid) + " AND paid = 1) * " + values[key].amount + ") ";
 			}
-			mysql.query("INSERT INTO transactions (userid, reason, satoshi) VALUES " + transactionValues.join(", "));
+			mysql.query("INSERT INTO transactions (userid, reason, `datetime`, satoshi) VALUES " + transactionValues.join(", "));
 			mysql.query("UPDATE users SET satoshi = CASE id " + userUpdateWhens + "END WHERE id IN (" + userIds.join(", ") + ")");
 			mysql.query("UPDATE gamefunds SET paid = 2 WHERE gameid = " + mysql.escape(gameid));
 		});
@@ -84,7 +84,7 @@ module.exports = function GameFunds (mysql, settings) {
 				return;
 			}
 			if (rows[0].satoshi >= rows[0].satoshitopay) {
-				mysql.query("INSERT INTO transactions (userid, reason, satoshi) VALUES (" + mysql.escape(userid) + ", 'Authorized funds for game #" + mysql.escape(gameid) + "', " + mysql.escape(-rows[0].satoshitopay) + ")");
+				mysql.query("INSERT INTO transactions (userid, reason, `datetime` satoshi) VALUES (" + mysql.escape(userid) + ", 'Authorized funds for game #" + mysql.escape(gameid) + "', NOW(), " + mysql.escape(-rows[0].satoshitopay) + ")");
 				mysql.query("UPDATE users SET satoshi = satoshi - " + mysql.escape(rows[0].satoshitopay) + " WHERE id = " + mysql.escape(userid));
 				mysql.query("UPDATE gamefunds SET paid = 1 WHERE gameid = " + mysql.escape(gameid) + " AND userid = " + mysql.escape(userid), function (err) {
 					if (err) {

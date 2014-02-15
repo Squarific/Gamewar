@@ -118,7 +118,7 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 			}
 			errorDiv = targetdiv.appendChild(document.createElement("div"));
 			successDiv = targetdiv.appendChild(document.createElement("div"));
-			targetdiv.appendChild(style.currentStyle.lobby(this, data, gameWar));
+			targetdiv.appendChild(style.currentStyle.lobby(this, data, gameWar, gameId));
 		}.bind(this),
 		drawTable: function (gamedata) {
 			while (targetdiv.firstChild) {

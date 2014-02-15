@@ -5,7 +5,7 @@ GENERAL
 	games
 		- Kill games after X amount of time
 		- chat
-		- tutorial on how to make + basic game structure
+		- tutorial on how to make
 	transactions/wallet
 		- Put funds in
 		- Withdrawal
@@ -33,6 +33,8 @@ GENERAL
 	backup
 		- Email every hour
 		- Save to file every 5 minutes
+	mysql
+		- put sql in sql file
 GAMES:
 	Tic Tac Ten
 	BattleShip

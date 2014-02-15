@@ -158,7 +158,7 @@ var style = {
 			}
 			return table;
 		},
-		lobby: function (game, data, gameWar) {
+		lobby: function (game, data, gameWar, gameId) {
 			var block = this.blockText();
 			block.style.textAlign = "center";
 			var playerList = block.appendChild(this.lobbyPlayerList(gameWar, data, (gameWar.userId === data.creatorId) ? game : undefined));
