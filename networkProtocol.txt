@@ -1,0 +1,26 @@
+lobbyData {
+	betAmount: Number,
+	creatorId: Number,
+	maxPlayers: Number,
+	players: [{
+		id: Number,
+		username: String
+	}, ...],
+	settings: [{
+		settingName: settingValue
+	}]
+}
+
+walletData {
+	satoshi: Number,
+	gameFunds: [{
+		gameid: Number,
+		paid: Number,
+		satoshi: Number
+	}, ...],
+	transactions: [{
+		datetime: String,
+		reason: String,
+		satoshi: Number
+	}, ...]
+}

@@ -4,11 +4,8 @@ GENERAL
 		- close on ctrl+w
 	games
 		- Kill games after X amount of time
-		- Chat (?)
-		- give money to winner(s)
-		- lobby system
+		- chat
 		- tutorial on how to make + basic game structure
-		- Deny joining games if can't pay betamount (check open gamefunds)
 	transactions/wallet
 		- Put funds in
 		- Withdrawal
@@ -41,6 +38,6 @@ GAMES:
 	BattleShip
 	Hearts
 		- When all hearts and lady gone stop game
-		- Give funds to winner
 		- Check client side if valid move
+		- Deny joining games if can't pay betamount (check open gamefunds)
 	Risk

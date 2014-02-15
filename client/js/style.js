@@ -158,6 +158,46 @@ var style = {
 			}
 			return table;
 		},
+		lobby: function (game, data, gameWar) {
+			var block = this.blockText();
+			block.style.textAlign = "center";
+			var playerList = block.appendChild(this.lobbyPlayerList(gameWar, data, (gameWar.userId === data.creatorId) ? game : undefined));
+			var settingList = block.appendChild(this.lobbySettingsList(data, game.settings));
+			settingList.innerHTML += game.description;
+			settingList.style.maxHeight = "500px";
+			settingList.style.overflowY = "auto";
+			var actionList = block.appendChild(this.lobbyBlock());
+			actionList.appendChild(document.createTextNode("Actions: "));
+			actionList.appendChild(document.createElement("br"));
+			actionList.appendChild(document.createElement("br"));
+			var joined;
+			for (var key = 0; key < data.players.length; key++) {
+				if (data.players[key].id === gameWar.userId) {
+					joined = true;
+				}
+			}
+			if (joined) {
+				var button = actionList.appendChild(this.button("Leave game", function () {
+					gameWar.sendMessage(gameId, "leave");
+				}));
+				button.style.minWidth = "92%";
+				button.style.margin = "3px";
+				if (data.creatorId === gameWar.userId && data.players.length === data.maxPlayers) {
+					var button = actionList.appendChild(this.button("Start game", function () {
+						gameWar.sendMessage(gameId, "start");
+					}));
+					button.style.minWidth = "92%";
+					button.style.margin = "3px";
+				}
+			} else if (data.players.length > 0 && data.players.length < data.maxPlayers) {
+				var button = actionList.appendChild(this.button("Join game", function () {
+					gameWar.sendMessage(gameId, "join");
+				}));
+				button.style.minWidth = "92%";
+				button.style.margin = "3px";
+			}
+			return block;
+		},
 		newTable: function (tableClass, captionText, headers) {
 			var table = document.createElement("table");
 			table.classList.add(tableClass);
@@ -187,7 +227,7 @@ var style = {
 		gameFundRow: function (tableRow, gameFund, actionCallback) {
 			tableRow.insertCell(-1).appendChild(document.createTextNode("Game #" + gameFund["gameid"]));
 			var paid = tableRow.insertCell(-1);
-			paid.appendChild(document.createTextNode(gameFund["paid"] === 1 ? "AUTHORIZED and PAID" : (gameFund["paid"] === 2) "GIVEN TO WINNER" : "REQUESTED"));
+			paid.appendChild(document.createTextNode(gameFund["paid"] === 1 ? "AUTHORIZED and PAID" : (gameFund["paid"] === 2) ? "GIVEN TO WINNER" : "REQUESTED"));
 			paid.classList.add(gameFund["paid"] ? "paid" : "requested");
 			var amount = tableRow.insertCell(-1);
 			amount.appendChild(document.createTextNode(gameFund["satoshi"]));

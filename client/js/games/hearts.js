@@ -112,54 +112,18 @@ gameWarGames.Hearts = function Hearts (gameId, targetdiv, gameWar) {
 	
 	var helpers = {
 		showLobby: function (data) {
+			console.log("Lobby data:", data);
 			while (targetdiv.firstChild) {
 				targetdiv.removeChild(targetdiv.firstChild);
 			}
-			var block = targetdiv.appendChild(style.currentStyle.blockText());
-			block.style.textAlign = "center";
-			errorDiv = block.appendChild(document.createElement("div"));
-			successDiv = block.appendChild(document.createElement("div"));
-			var playerList = block.appendChild(style.currentStyle.lobbyPlayerList(gameWar, data, (gameWar.userId === data.creatorId) ? this : undefined));
-			var settingList = block.appendChild(style.currentStyle.lobbySettingsList(data, this.settings));
-			settingList.innerHTML += this.description;
-			settingList.style.maxHeight = "500px";
-			settingList.style.overflowY = "auto";
-			var actionList = block.appendChild(style.currentStyle.lobbyBlock());
-			actionList.appendChild(document.createTextNode("Actions: "));
-			actionList.appendChild(document.createElement("br"));
-			actionList.appendChild(document.createElement("br"));
-			var joined;
-			for (var key = 0; key < data.players.length; key++) {
-				if (data.players[key].id === gameWar.userId) {
-					joined = true;
-				}
-			}
-			if (joined) {
-				var button = actionList.appendChild(style.currentStyle.button("Leave game", function () {
-					gameWar.sendMessage(gameId, "leave");
-				}));
-				button.style.minWidth = "92%";
-				button.style.margin = "3px";
-				if (data.creatorId === gameWar.userId && data.players.length === data.maxPlayers) {
-					var button = actionList.appendChild(style.currentStyle.button("Start game", function () {
-						gameWar.sendMessage(gameId, "start");
-					}));
-					button.style.minWidth = "92%";
-					button.style.margin = "3px";
-				}
-			} else if (data.players.length > 0 && data.players.length < data.maxPlayers) {
-				var button = actionList.appendChild(style.currentStyle.button("Join game", function () {
-					gameWar.sendMessage(gameId, "join");
-				}));
-				button.style.minWidth = "92%";
-				button.style.margin = "3px";
-			}
+			errorDiv = targetdiv.appendChild(document.createElement("div"));
+			successDiv = targetdiv.appendChild(document.createElement("div"));
+			targetdiv.appendChild(style.currentStyle.lobby(this, data, gameWar));
 		}.bind(this),
 		drawTable: function (gamedata) {
 			while (targetdiv.firstChild) {
 				targetdiv.removeChild(targetdiv.firstChild);
 			}
-			
 			for (var key = 0; key < gamedata.players.length; key++) {
 				if (gamedata.players[key].points >= gamedata.endpoints) {
 					var lowest = gamedata.players[key].points,
