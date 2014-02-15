@@ -32,13 +32,41 @@ gameWar.addEventListener("homepage", function () {
 gameWar.addEventListener("wallethq", function () {
 	var pagediv = tabview.open("wallethq");
 	var block = pagediv.appendChild(style.currentStyle.blockText());
-	block.appendChild(document.createTextNode("Your wallet status"));
-	network.emit("wallet", undefined, function (data) {
-		console.log(data);
-		block.appendChild(style.currentStyle.walletTable(data.satoshi));
-		//block.appendChild(style.currentStyle.gameFundTable(data.gameFunds));
-		//block.appendChild(style.currentStyle.transactionsTable(data.transactions));
-	});
+	block.appendChild(document.createTextNode("Loading..."));
+	function walletData (response) {
+		network.emit("wallet", undefined, function (data) {
+			console.log("Wallet data: ", data);
+			while (block.firstChild) {
+				block.removeChild(block.firstChild);
+			}
+			block.appendChild(document.createTextNode("Your wallet status"));
+			block.appendChild(document.createElement("br"));
+			if (response && (response.success || response.error)) {
+				var message = block.appendChild(document.createElement("div"));
+				message.classList.add(response.success ? "default_success_message" : "default_error_message");
+				message.appendChild(document.createTextNode(response.success || response.error));
+			}
+			block.appendChild(document.createElement("br"));
+			var button = block.appendChild(style.currentStyle.button("Refresh", function (event) {
+				if (!event.target.classList.contains("default_disabled")) {
+					walletData();
+				}
+				event.target.classList.add("default_disabled");
+				while (event.target.firstChild) {
+					event.target.removeChild(event.target.firstChild);
+				}
+				event.target.appendChild(document.createTextNode("Refreshing..."));
+			}));
+			block.appendChild(style.currentStyle.walletTable(data.satoshi));
+			block.appendChild(style.currentStyle.gameFundTable(data.gameFunds, function (action, data) {
+				network.emit(action, data, function (data) {
+					walletData(data);
+				});
+			}));
+			block.appendChild(style.currentStyle.transactionsTable(data.transactions));
+		});
+	}
+	walletData();
 });
 
 gameWar.addEventListener("activegames", function () {

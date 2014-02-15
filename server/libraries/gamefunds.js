@@ -24,15 +24,15 @@ module.exports = function GameFunds (mysql, settings) {
 	};
 
 	this.authorizeFunds = function (gameid, userid, callback) {
-		mysql.query("SELECT satoshi, (SELECT satoshi FROM gamefunds WHERE gameid = " + mysql.escape(gameid) + ") AS satoshitopay FROM users WHERE id = " + mysql.escape(userid), function (err, rows, fields) {
-			if (error || !rows || rows.length < 1) {
+		mysql.query("SELECT satoshi, (SELECT satoshi FROM gamefunds WHERE gameid = " + mysql.escape(gameid) + " AND userid = " + mysql.escape(userid) + ") AS satoshitopay FROM users WHERE id = " + mysql.escape(userid), function (err, rows, fields) {
+			if (err || !rows || rows.length < 1) {
 				console.log("AUTHORIZE FUNDS DATABASE ERROR:", err, rows);
 				callback({error: "DATABASE ERROR: Can't authorize funds."});
 				return;
 			}
 			if (rows[0].satoshi >= rows[0].satoshitopay) {
 				mysql.query("INSERT INTO transactions (userid, reason, satoshi) VALUES (" + mysql.escape(userid) + ", 'Authorized funds for game #" + mysql.escape(gameid) + "', " + mysql.escape(-rows[0].satoshitopay) + ")");
-				mysql.query("UPDATE users SET satoshi = satoshi - " + mysql.escape(rows[0].satoshitopay) + " WHERE userid = " + mysql.escape(userid));
+				mysql.query("UPDATE users SET satoshi = satoshi - " + mysql.escape(rows[0].satoshitopay) + " WHERE id = " + mysql.escape(userid));
 				mysql.query("UPDATE gamefunds SET paid = 1 WHERE gameid = " + mysql.escape(gameid) + " AND userid = " + mysql.escape(userid), function (err) {
 					if (err) {
 						console.log("AUTHORIZE FUNDS DATABASE ERROR (UPDATE):", err, rows);
@@ -42,7 +42,7 @@ module.exports = function GameFunds (mysql, settings) {
 					callback({success: "Funds for game #" + gameid + " are autorized."});
 				});
 			} else {
-				callback({error: "Can't authorize funds: you don't have enough bitcoins."});
+				callback({error: "Can't authorize funds for game #" + gameid + ": you don't have enough bitcoins."});
 			}
 		});
 	};

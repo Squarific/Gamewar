@@ -5,15 +5,13 @@ GENERAL
 	games
 		- Kill games after X amount of time
 		- Chat (?)
-		- request funds
 		- give money to winner(s)
 		- lobby system
 		- tutorial on how to make + basic game structure
+		- Deny joining games if can't pay betamount (check open gamefunds)
 	transactions/wallet
-		- History in wallet hq
 		- Put funds in
 		- Withdrawal
-		- Authorize games
 		- Auto autherize certain games/all games
 		- Second password
 		- twofactor authentication
@@ -44,4 +42,6 @@ GAMES:
 	Hearts
 		- When giving cards to self don't ask
 		- When all hearts and lady gone stop game
+		- Give funds to winner
+		- Deny kick if gamefunds requested
 	Risk

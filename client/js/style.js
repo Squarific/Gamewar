@@ -158,11 +158,73 @@ var style = {
 			}
 			return table;
 		},
-		gameFundTable: function (gameFunds) {
-			
+		newTable: function (tableClass, captionText, headers) {
+			var table = document.createElement("table");
+			table.classList.add(tableClass);
+			table.sortable = true;
+			var caption = table.appendChild(document.createElement("caption"));
+			caption.appendChild(document.createTextNode(captionText));
+			return this.addTableHeaders(table, headers);
+		},
+		addTableHeaders: function (table, headers) {
+			var header = table.createTHead();
+			var headerrow = header.insertRow(0);
+			for (var key = 0; key < headers.length; key++) {
+				var headercell = headerrow.appendChild(document.createElement("th"));;
+				headercell.appendChild(document.createTextNode(headers[key]));
+			}
+			return table;
+		},
+		gameFundTable: function (gameFunds, actionCallback) {
+			var headers = ["GameId", "Status", "Amount (satoshi)", "Actions"];
+			var table = this.newTable("default_gamefundtable", "GameFunds", headers);
+			var tableBody = table.appendChild(document.createElement("tbody"));
+			for (var key = 0; key < gameFunds.length; key++) {
+				this.gameFundRow(tableBody.insertRow(-1), gameFunds[key], actionCallback);
+			}
+			return table;
+		},
+		gameFundRow: function (tableRow, gameFund, actionCallback) {
+			tableRow.insertCell(-1).appendChild(document.createTextNode("Game #" + gameFund["gameid"]));
+			var paid = tableRow.insertCell(-1);
+			paid.appendChild(document.createTextNode(gameFund["paid"] ? "AUTHORIZED and PAID" : "REQUESTED"));
+			paid.classList.add(gameFund["paid"] ? "paid" : "requested");
+			var amount = tableRow.insertCell(-1);
+			amount.appendChild(document.createTextNode(gameFund["satoshi"]));
+			amount.classList.add("default_moneycell");
+			var actions = tableRow.insertCell(-1);
+			if (!gameFund["paid"]) {
+				var button = actions.appendChild(this.button("Authorize and pay", function (event) {
+					if (!event.target.classList.contains("default_disabled")) {
+						actionCallback("authorizegamefund", event.target.gameId);
+					}
+					event.target.classList.add("default_disabled");
+					while (event.target.firstChild) {
+						event.target.removeChild(event.target.firstChild);
+					}
+					event.target.appendChild(document.createTextNode("Authorizing..."));
+				}));
+				button.style.minWidth = "0px";
+				button.gameId = gameFund["gameid"];
+			}
+			return tableRow;
 		},
 		transactionsTable: function (transactions) {
-			
+			var headers = ["Date and time", "Reason", "Amount (satoshi)"];
+			var table = this.newTable("default_gamefundtable", "Transactions", headers);
+			var tableBody = table.appendChild(document.createElement("tbody"));
+			for (var key = 0; key < transactions.length; key++) {
+				this.transactionRow(tableBody.insertRow(-1), transactions[key]);
+			}
+			return table;
+		},
+		transactionRow: function (tableRow, transaction) {
+			tableRow.insertCell(-1).appendChild(document.createTextNode(new Date(transaction["datetime"]).toLocaleString()));
+			tableRow.insertCell(-1).appendChild(document.createTextNode(transaction["reason"]));
+			var amount = tableRow.insertCell(-1);
+			amount.appendChild(document.createTextNode(transaction["satoshi"]));
+			amount.classList.add("default_moneycell");
+			return tableRow;
 		},
 		error: function (error) {
 			var errorDiv = document.createElement("div");

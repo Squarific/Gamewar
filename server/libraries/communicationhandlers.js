@@ -92,6 +92,10 @@ module.exports = function Communicationhandlers (settings, handlers, gamemessage
 				});
 			});
 		});
+		
+		socket.on("authorizegamefund", function (data, callback) {
+			gameFunds.authorizeFunds(data, socket.userdata.id, callback);
+		});
 	});
 	
 	console.log("Accepting connections on port " + settings.server.port);

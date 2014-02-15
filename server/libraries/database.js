@@ -35,12 +35,12 @@ module.exports = {
 		
 		var query = "CREATE TABLE IF NOT EXISTS ";
 		query += "transactions (";
-		query += "`id` BIGINT,";
+		query += "`id` BIGINT NOT NULL AUTO_INCREMENT,";
 		query += "`userid` BIGINT,"
 		query += "`reason` TEXT,";
 		query += "`datetime` DATETIME DEFAULT NOW(),";
 		query += "`satoshi` BIGINT,";
-		query += "PRIMARY KEY (userid)";
+		query += "PRIMARY KEY (id)";
 		query += ")";
 		mysql.query(query);
 
