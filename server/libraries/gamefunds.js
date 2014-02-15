@@ -22,6 +22,59 @@ module.exports = function GameFunds (mysql, settings) {
 			callback(rows);
 		});
 	};
+	
+	this.giveFundsToWinners = function (gameid, values) {
+		if (!values.length) {
+			console.log("GIVEFUNDSTOWINNERS ERROR: wrong value count", values, !values.length);
+			return;
+		}
+		var transactionValues = [],
+			userUpdateWhens = "",
+			userIds = [];
+		values = this.normalizeWinners(values);
+		mysql.query("SELECT SUM(satoshi) as satoshi FROM gamefunds WHERE gameid = " + mysql.escape(gameid) + " AND paid = 1", function (err, rows, fields) {
+			if (err) {
+				console.log("DATABASE ERROR: ", err);
+				return;
+			}
+			for (var key = 0; key < values.length; key++) {
+				transactionValues.push("(" + mysql.escape(values[key].id) + ", 'Earnings from winning game #" + gameid + "', " + rows[0].satoshi * values[key].amount + ")");
+				userIds.push(values[key].id);
+				userUpdateWhens += "WHEN " + values[key].id + " THEN FLOOR((SELECT SUM(satoshi) FROM gamefunds WHERE gameid = " + mysql.escape(gameid) + " AND paid = 1) * " + values[key].amount + ") ";
+			}
+			mysql.query("INSERT INTO transactions (userid, reason, satoshi) VALUES " + transactionValues.join(", "));
+			mysql.query("UPDATE users SET satoshi = CASE id " + userUpdateWhens + "END WHERE id IN (" + userIds.join(", ") + ")");
+			mysql.query("UPDATE gamefunds SET paid = 2 WHERE gameid = " + mysql.escape(gameid));
+		});
+	};
+	
+	this.normalizeWinners = function (values) {
+		var defaults = 0,
+			givenProcent = 0;
+		for (var key = 0; key < values.length; key++) {
+			if (typeof values[key].amount !== "number") {
+				defaults++;
+			} else {
+				givenProcent += values[key].amount;
+			}
+			values[key].id = parseInt(values[key].id) || 0;
+		}
+		if (givenProcent > 100) {
+			var realProcent = givenProcent / 100;
+			for (var key = 0; key < values.length; key++) {
+				values[key].amount = parseInt(values[key].amount / realProcent) || 0;
+				values[key].amount /= 100;
+			}
+		} else {
+			for (var key = 0; key < values.length; key++) {
+				if (typeof values[key].amount !== "number") {
+					values[key].amount = parseInt((100 - givenProcent) / defaults);
+				}
+				values[key].amount /= 100;
+			}
+		}
+		return values;
+	};
 
 	this.authorizeFunds = function (gameid, userid, callback) {
 		mysql.query("SELECT satoshi, (SELECT satoshi FROM gamefunds WHERE gameid = " + mysql.escape(gameid) + " AND userid = " + mysql.escape(userid) + ") AS satoshitopay FROM users WHERE id = " + mysql.escape(userid), function (err, rows, fields) {

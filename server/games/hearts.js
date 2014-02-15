@@ -609,9 +609,15 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 								}
 							}
 							if (ended) {
-								//Game has ended
 								mysql.query("UPDATE games_lobby SET ended = 1 WHERE id = " + mysql.escape(gameId));
 								helpers.sendGameData(gameId);
+								mysql.query("SELECT playerid FROM games_hearts_playerdata WHERE score = (SELECT MIN(score) FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId) + ") AND gameid = " + mysql.escape(gameId), function (err, rows, fields) {
+									var winners = [];
+									for (var key = 0; key < rows.length; key++) {
+										winners.push({id: rows[key].playerid});
+									}
+									gameFunds.giveFundsToWinners(winners);
+								});
 								console.log("GAMES: HEARTS: game: " + gameId + " has ended.");
 							} else {
 								helpers.startNewGameRound(gameId);
@@ -690,7 +696,7 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 							});
 						} else {
 							for (var key = 0; key < list.length; key++) {
-								if (!list[key].paid) {
+								if (list[key].paid !== 1) {
 									messages.emit(socket, gameId, "error", "This game can't be started yet, user " + list[key].userid + " still has to autherize hes funds.");
 									return;
 								}
