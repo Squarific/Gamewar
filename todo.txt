@@ -40,7 +40,7 @@ GAMES:
 	Tic Tac Ten
 	BattleShip
 	Hearts
-		- When giving cards to self don't ask
 		- When all hearts and lady gone stop game
 		- Give funds to winner
+		- Check client side if valid move
 	Risk

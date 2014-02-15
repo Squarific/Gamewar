@@ -297,6 +297,7 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 		startNewGameRound: function (gameId) {
 			mysql.query("SELECT maxPlayers FROM games_lobby WHERE id = " + mysql.escape(gameId), function (err, rows, fields) {
 				var cards = helpers.saveCards(gameId, helpers.shuffleCardArray(helpers.newCardArray(rows[0].maxPlayers), rows[0].maxPlayers), function () {
+					helpers.playFirstCard(gameId);
 					helpers.sendGameData(gameId);
 				});
 			});
@@ -505,19 +506,24 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 			});
 		},
 		playFirstCard: function (gameId) {
-			mysql.query("SELECT count(*) AS playercount FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId), function (err, rows, fields) {
-				if (err) {
-					console.log("GAMES: HEARTS: DATABASE ERROR WHILE TRYING TO SEE IF EVERYONE PASSED A CARD AND SELECTING PLAYERCOUNT ERR: " + err);
-					return;
-				}
-				mysql.query("SELECT count(*) AS cardcount FROM games_hearts_cards WHERE gameid = " + mysql.escape(gameId) + " AND position > " + mysql.escape(rows[0].playercount * 3) + " AND position <= " + mysql.escape(rows[0].playercount * 4), function (err, cards, fields) {
+			mysql.query("SELECT round FROM games_hearts_gamedata WHERE gameid = " + mysql.escape(gameId), function (err, gamedata, fields) {
+				mysql.query("SELECT count(*) AS playercount FROM games_hearts_playerdata WHERE gameid = " + mysql.escape(gameId), function (err, rows, fields) {
 					if (err) {
-						console.log("GAMES: HEARTS: DATABASE ERROR WHILE TRYING TO SEE IF EVERYONE PASSED A CARD ERR: " + err);
+						console.log("GAMES: HEARTS: DATABASE ERROR WHILE TRYING TO SEE IF EVERYONE PASSED A CARD AND SELECTING PLAYERCOUNT ERR: " + err);
 						return;
 					}
-					if (cards[0].cardcount === rows[0].playercount * 3) {
+					if (!((gamedata[0].round + 1) % rows[0].playercount)) {
 						helpers.playFirstCardChecked(gameId);
 					}
+					mysql.query("SELECT count(*) AS cardcount FROM games_hearts_cards WHERE gameid = " + mysql.escape(gameId) + " AND position > " + mysql.escape(rows[0].playercount * 3) + " AND position <= " + mysql.escape(rows[0].playercount * 4), function (err, cards, fields) {
+						if (err) {
+							console.log("GAMES: HEARTS: DATABASE ERROR WHILE TRYING TO SEE IF EVERYONE PASSED A CARD ERR: " + err);
+							return;
+						}
+						if (cards[0].cardcount === rows[0].playercount * 3) {
+							helpers.playFirstCardChecked(gameId);
+						}
+					});
 				});
 			});
 		},
