@@ -1,7 +1,7 @@
 var gameWarGames = gameWarGames || {};
 gameWarGames.GameName = function GameName (gameId, targetdiv, gameWar) {
-	this.description = "HTML STRING";
-	this.name = "Hearts (black lady)";
+	this.description = "HTML STRING explaining the game";
+	this.name = "Humanized GameName";
 	this.settings = {
 		settingName: {
 			type: "number",

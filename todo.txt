@@ -40,5 +40,4 @@ GAMES:
 		- When all hearts and lady gone stop game
 		- Check client side if valid move
 		- Deny joining games if can't pay betamount (check open gamefunds)
-		- use normalized listeners
 	Risk

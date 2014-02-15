@@ -59,7 +59,8 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 			- tablecards: ARRAY of cards on the table
 	*/
 	
-	var gameListeners = {};
+	var listenersManager = new Listeners(messages);
+	
 	var helpers = {
 		createDatabase: function () {
 			if (settings.dropTables) {
@@ -140,26 +141,6 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 				}
 				callback();
 			});
-		},
-		addGameListener: function (gameId, socket) {
-			gameListeners[gameId] = gameListeners[gameId] || [];
-			if (gameListeners[gameId].indexOf(socket) === -1) {
-				gameListeners[gameId].push(socket);
-			}
-		},
-		removeGameListener: function (socket) {
-			for (var gameId in gameListeners) {
-				var index = gameListeners[gameId].indexOf(socket);
-				if (index !== -1) {
-					gameListeners[gameId].splice(index, 1);
-				}
-			}
-		},
-		callGameListeners: function (gameId, event, data) {
-			gameListeners[gameId] = gameListeners[gameId] || {};
-			for (var key = 0; key < gameListeners[gameId].length; key++) {
-				messages.emit(gameListeners[gameId][key], gameId, event, data);
-			}
 		},
 		sendGameData: function (gameId, socket) {
 			gameListeners[gameId] = gameListeners[gameId] || [];
@@ -639,9 +620,9 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 						messages.emit(socket, gameId, "gamelobby", gameData);
 					});
 				}
-				helpers.addGameListener(gameId, socket);
+				listenersManager.addGameListener(gameId, socket);
 				socket.on("disconnect", function () {
-					helpers.removeGameListener(socket);
+					listenersManager.removeGameListener(socket);
 				});
 			});
 		}.bind(this),
@@ -737,7 +718,7 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 						return;
 					}
 					helpers.getGameLobbyData(gameId, function (gameData) {
-						helpers.callGameListeners(gameId, "gamelobby", gameData);
+						listenersManager.callGameListeners(gameId, "gamelobby", gameData);
 					}, true);
 				});
 			});
@@ -756,7 +737,7 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 								return;
 							}
 							helpers.getGameLobbyData(gameId, function (gameData) {
-								helpers.callGameListeners(gameId, "gamelobby", gameData);
+								listenersManager.callGameListeners(gameId, "gamelobby", gameData);
 							}, true);
 						}
 						if (socket.userdata.id === gameData.creatorId) {
@@ -828,7 +809,7 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 										return;
 									}
 									helpers.getGameLobbyData(gameId, function (gameData) {
-										helpers.callGameListeners(gameId, "gamelobby", gameData);
+										listenersManager.callGameListeners(gameId, "gamelobby", gameData);
 									}, true);
 								}
 								if (playerId === gameData.creatorId) {
