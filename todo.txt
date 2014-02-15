@@ -43,5 +43,4 @@ GAMES:
 		- When giving cards to self don't ask
 		- When all hearts and lady gone stop game
 		- Give funds to winner
-		- Deny kick if gamefunds requested
 	Risk

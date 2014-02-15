@@ -56,16 +56,22 @@ module.exports = function GameFunds (mysql, settings) {
 		for (var key = 0; key < values.length; key++) {
 			mysqlvalues.push("(" + mysql.escape(parseInt(gameid)) + ", " + mysql.escape(parseInt(values[key].userid)) + ", " + ((parseInt(values[key].satoshi) === 0) ? 1 : 0) + ", " + mysql.escape(parseInt(values[key].satoshi)) + ")");
 		}
-		console.log("GameFunds Requested for game " + gameid);
-		var query = "INSERT INTO gamefunds (gameid, userid, paid, satoshi) VALUES " + mysqlvalues.join(", ");
-		mysql.query(query, function (err) {
-			if (err) {
-				console.log("REQUESTGAMEFUNDS DATABASE ERROR: ", err, "QUERY: ", query);
-				callback(err);
+		console.log("GameFunds Requested for game " + gameid + " for " + values.length + " players.");
+		this.checkStatus(gameid, function (err, list) {
+			if (list.length !== 0) {
+				console.log("GameFunds Request for game " + gameid + " denied: GameFunds have already been requested.");
 				return;
 			}
-			callback();
-		});
+			var query = "INSERT INTO gamefunds (gameid, userid, paid, satoshi) VALUES " + mysqlvalues.join(", ");
+			mysql.query(query, function (err) {
+				if (err) {
+					console.log("REQUESTGAMEFUNDS DATABASE ERROR: ", err, "QUERY: ", query);
+					callback(err);
+					return;
+				}
+				callback();
+			});
+		})
 	};
 
 	this.checkStatus = function (gameid, callback) {

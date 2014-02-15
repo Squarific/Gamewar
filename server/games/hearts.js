@@ -803,45 +803,51 @@ module.exports = function Hearts (mysql, messages, settings, gameFunds) {
 						messages.emit(socket, gameId, "error", "You can't kick this player because it has already been started.");
 						return;
 					}
-					for (var key = 0; key < gameData.players.length; key++) {
-						if (gameData.players[key].id === playerId) {
-							function updateLobby (err) {
-								if (err) {
-									messages.emit(socket, gameId, "error", "There was an error removing the player form this game. Err: " + err + "");
-									return;
-								}
-								helpers.getGameLobbyData(gameId, function (gameData) {
-									helpers.callGameListeners(gameId, "gamelobby", gameData);
-								}, true);
-							}
-							if (playerId === gameData.creatorId) {
-								if (gameData.players.length > 1) {
-									gameData.players.splice(key, 1);
-									mysql.query("UPDATE games_lobby SET creatorid = " + mysql.escape(gameData.players[0].id) + " WHERE id = " + mysql.escape(gameId), function (err, rows, fields) {
-										if (err) {
-											messages.emit(socket, gameId, "error", "There was an error assigning someone else as creator. Err: " + err + "");
-											console.log("DATABASE ERROR ASSIGNING CREATOR: " + err);
-											return;
-										}
-										helpers.removePlayer(gameId, playerId, updateLobby);
-									});
-								} else {
-									mysql.query("UPDATE games_lobby SET ended = 1 WHERE id = " + mysql.escape(gameId), function (err, rows, fields) {
-										if (err) {
-											messages.emit(socket, gameId, "error", "There was an error assigning someone else as creator. Err: " + err + "");
-											console.log("DATABASE ERROR ENDING EMPTY GAME: " + err);
-											return;
-										}
-										helpers.removePlayer(gameId, playerId, updateLobby);
-									});
-								}
-							} else {
-								helpers.removePlayer(gameId, playerId, updateLobby);
-							}
+					gameFunds.checkStatus(gameId, function (err, list) {
+						if (list.length === gameData.maxPlayers) {
+							messages.emit(socket, gameId, "error", "You can't kick this player because funds have already been requested.");
 							return;
 						}
-					}
-					messages.emit(socket, gameId, "error", "You can't kick a player that isn't in the game.");
+						for (var key = 0; key < gameData.players.length; key++) {
+							if (gameData.players[key].id === playerId) {
+								function updateLobby (err) {
+									if (err) {
+										messages.emit(socket, gameId, "error", "There was an error removing the player form this game. Err: " + err + "");
+										return;
+									}
+									helpers.getGameLobbyData(gameId, function (gameData) {
+										helpers.callGameListeners(gameId, "gamelobby", gameData);
+									}, true);
+								}
+								if (playerId === gameData.creatorId) {
+									if (gameData.players.length > 1) {
+										gameData.players.splice(key, 1);
+										mysql.query("UPDATE games_lobby SET creatorid = " + mysql.escape(gameData.players[0].id) + " WHERE id = " + mysql.escape(gameId), function (err, rows, fields) {
+											if (err) {
+												messages.emit(socket, gameId, "error", "There was an error assigning someone else as creator. Err: " + err + "");
+												console.log("DATABASE ERROR ASSIGNING CREATOR: " + err);
+												return;
+											}
+											helpers.removePlayer(gameId, playerId, updateLobby);
+										});
+									} else {
+										mysql.query("UPDATE games_lobby SET ended = 1 WHERE id = " + mysql.escape(gameId), function (err, rows, fields) {
+											if (err) {
+												messages.emit(socket, gameId, "error", "There was an error assigning someone else as creator. Err: " + err + "");
+												console.log("DATABASE ERROR ENDING EMPTY GAME: " + err);
+												return;
+											}
+											helpers.removePlayer(gameId, playerId, updateLobby);
+										});
+									}
+								} else {
+									helpers.removePlayer(gameId, playerId, updateLobby);
+								}
+								return;
+							}
+						}
+						messages.emit(socket, gameId, "error", "You can't kick a player that isn't in the game.");
+					});
 				});
 			});
 		}
