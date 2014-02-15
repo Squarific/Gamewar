@@ -95,7 +95,7 @@ var style = {
 				playerlist.appendChild(document.createElement("br"));
 				var text = gameData.players[key].username + " [" + gameData.players[key].id + "]";
 				if (gameData.players[key].id === gameData.creatorId) {
-					text += " (Creator)";
+					text += " (GameStarter)";
 				}
 				var button = playerlist.appendChild(this.button(text, function (event) {
 					gameWar.callEvent("profile", event.target.playerId);
