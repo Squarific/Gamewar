@@ -21,6 +21,12 @@ module.exports = function GameName (mysql, messages, settings, gameFunds, Listen
 	var listeners = {
 		event: function (socket, gameId, data) {
 			
+		},
+		opengame: function (socket, gameId, data) {
+			listenersManager.addGameListener(gameId, socket);
+			socket.on("disconnect", function () {
+				listenersManager.removeGameListener(socket);
+			});
 		}
 	};
 	
