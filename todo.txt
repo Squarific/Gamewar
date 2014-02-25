@@ -4,7 +4,6 @@ GENERAL
 		- close on ctrl+w
 	games
 		- Kill games after X amount of time
-		- chat
 		- tutorial on how to make
 	transactions/wallet
 		- Put funds in
@@ -35,6 +34,8 @@ GENERAL
 		- Save to file every 5 minutes
 	mysql
 		- put sql in sql file
+	lobby
+	chat
 GAMES:
 	Tic Tac Ten
 	BattleShip
@@ -43,3 +44,6 @@ GAMES:
 		- Check client side if valid move
 		- Deny joining games if can't pay betamount (check open gamefunds)
 	Risk
+		- generate map
+		- render map
+	TrainGame

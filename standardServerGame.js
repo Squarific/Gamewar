@@ -1,4 +1,4 @@
-module.exports = function GameName (mysql, messages, settings, gameFunds, Listeners) {
+module.exports = function GameName (mysql, messages, settings, gameFunds, Listeners, lobby, chat) {
 	this.name = "";
 	this.settings = {
 		settingName: {
@@ -6,6 +6,20 @@ module.exports = function GameName (mysql, messages, settings, gameFunds, Listen
 			input: {
 				min: ,
 				max: 
+			}
+		},
+		players: {
+			type: "number",
+			input: {
+				min: 3,
+				max: 5
+			}
+		},
+		betAmount: {
+			type: "number",
+			input: {
+				min: 0,
+				max: Infinity
 			}
 		}
 	};
@@ -20,13 +34,20 @@ module.exports = function GameName (mysql, messages, settings, gameFunds, Listen
 	
 	var listeners = {
 		event: function (socket, gameId, data) {
-			listenersManager.callGameListeners(gameId, event, data); //Send to all clients listening to a certain gameId
+			listenersManager.callGameListeners(gameId, event, data);
 		},
 		opengame: function (socket, gameId, data) {
+			chat.openGame(socket, gameId, data);
+			lobby.openGame(socket, gameId, data);
 			listenersManager.addGameListener(gameId, socket);
 			socket.on("disconnect", function () {
-				listenersManager.removeGameListener(socket);
+				listeners.close(socket, gameId, data);
 			});
+		},
+		close: function (socket, gameId, data) {
+			chat.closeGame(socket, gameId, data);
+			lobby.closeGame(socket, gameId, data);
+			listenersManager.removeGameListener(socket);
 		}
 	};
 	
