@@ -22,14 +22,14 @@ module.exports = {
 		dropTables: true
 	},
 	backup: {
-		emails: ["alemaaltevinden@gmail.com"],
+		emails: ["filipsmetsbelgium@gmail.com"],
 		emailTime: 5 * 60 * 1000,
 		filename: "backups/gamewarDatabaseBackup",
 		fileTime: 3 * 60 * 1000
 	},
 	blockchain: {
 		guid: "",
-		main_password: "YGLKdQXgm6XvQ2AbLkzSssoCyyEC2ck9k4IuIdpt",
-		second_password: "ZAnFYYiQ7rYqUzJNKGzY9uDkQDVtIMAXPyoQGsDz"
+		main_password: "",
+		second_password: ""
 	}
 }
